@@ -79,10 +79,7 @@ const MainLayout = () => {
 
   // Đầu hàng: reset game và thông báo thất bại
   const handleSurrender = () => {
-    alert("Bạn thua (đầu hàng)!");
-    setGame(new Chess());
-    setRedoStack([]);
-    setGameResult(null);
+    setGameResult("Bạn thua (đầu hàng)!");
   };
 
   // Xin hòa: hiện thông báo (chưa hoạt động)
