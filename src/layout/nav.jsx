@@ -1,11 +1,26 @@
 // nav.jsx
+import { FaGamepad, FaRobot, FaChartBar, FaSignOutAlt } from "react-icons/fa";
+
 const Nav = () => {
   return (
-    <nav className="h-screen bg-gray-700 text-white p-4 w-full">
-      <ul className="space-y-2">
-        <li><a href="#" className="hover:underline">Home</a></li>
-        <li><a href="#" className="hover:underline">About</a></li>
-        <li><a href="#" className="hover:underline">Contact</a></li>
+    <nav className="h-screen bg-gray-700 text-white p-6 w-full">
+      <ul className="space-y-4">
+        <li className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-600 cursor-pointer">
+          <FaGamepad />
+          <a href="#">Chơi trực tuyến</a>
+        </li>
+        <li className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-600 cursor-pointer">
+          <FaRobot />
+          <a href="#">Chơi với máy</a>
+        </li>
+        <li className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-600 cursor-pointer">
+          <FaChartBar />
+          <a href="#">Lưu trữ và phân tích ván đấu</a>
+        </li>
+        <li className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-600 cursor-pointer">
+          <FaSignOutAlt />
+          <a href="#">Logout</a>
+        </li>
       </ul>
     </nav>
   );

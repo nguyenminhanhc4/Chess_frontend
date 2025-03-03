@@ -6,6 +6,8 @@ import Sidebar from "./sidebar";
 import Footer from "./footer";
 import ChessBoard from "../components/chessboard";
 import GameResultPopup from "./GameResultPopup"; // Đảm bảo đường dẫn đúng
+import { FaSyncAlt, FaRedoAlt } from "react-icons/fa";
+
 
 // Hàm clone game để trigger re-render mà vẫn giữ lịch sử
 const cloneGame = (gameInstance) => {
@@ -113,38 +115,35 @@ const MainLayout = () => {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      {/* Nội dung chính: chia thành 3 cột */}
       <div className="flex flex-grow">
-        {/* Nav ở bên trái */}
         <div className="w-1/5 h-full border-r border-gray-300">
           <Nav />
         </div>
 
-        {/* ChessBoard ở giữa */}
-        <div className="w-3/5 flex flex-col items-center justify-center">
+        {/* Container bàn cờ và nút bấm được sắp xếp theo hàng ngang */}
+        <div className="w-3/5 flex items-center justify-center">
           <ChessBoard 
             game={game} 
             handleMove={handleMove} 
             orientation={orientation}
           />
-          {/* Các nút phụ cho bàn cờ */}
-          <div className="mt-4 flex space-x-4">
+          {/* Nút bấm bên phải bàn cờ */}
+          <div className="ml-4 flex flex-col space-y-4">
             <button 
               onClick={handleToggleOrientation}
-              className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+              className="p-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
             >
-              Xoay bàn cờ
+              <FaSyncAlt size={24} />
             </button>
             <button 
               onClick={() => { setGame(new Chess()); setRedoStack([]); setGameResult(null); }}
-              className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+              className="p-2 bg-green-500 text-white rounded hover:bg-green-600"
             >
-              Ván mới
+              <FaRedoAlt size={24} />
             </button>
           </div>
         </div>
 
-        {/* Sidebar ở bên phải */}
         <div className="w-1/5 h-full border-l border-gray-300">
           <Sidebar 
             moveHistory={moveHistory}
@@ -158,7 +157,6 @@ const MainLayout = () => {
 
       <Footer />
 
-      {/* Popup kết quả game */}
       {gameResult && (
         <GameResultPopup result={gameResult} onHome={handleHome} onNewGame={handleNewGame} />
       )}
