@@ -5,8 +5,9 @@ import Nav from "./nav";
 import Sidebar from "./sidebar";
 import Footer from "./footer";
 import ChessBoard from "../components/chessboard";
+import GameResultPopup from "./GameResultPopup"; // Đảm bảo đường dẫn đúng
 
-// Hàm clone instance Chess, giữ lại lịch sử
+// Hàm clone game để trigger re-render mà vẫn giữ lịch sử
 const cloneGame = (gameInstance) => {
   return Object.assign(Object.create(Object.getPrototypeOf(gameInstance)), gameInstance);
 };
@@ -15,18 +16,39 @@ const MainLayout = () => {
   const [game, setGame] = useState(new Chess());
   const [redoStack, setRedoStack] = useState([]);
   const [orientation, setOrientation] = useState("white");
+  const [gameResult, setGameResult] = useState(null);
 
-  // Debug: log lịch sử nước đi mỗi khi game thay đổi
+  // Kiểm tra game over mỗi khi game thay đổi
   useEffect(() => {
-    console.log("moveHistory:", game.history({ verbose: true }));
+    if (game.isGameOver()) {
+      let result = "";
+      // Giả sử bạn có playerColor lưu trong state; nếu không, giả sử người chơi là trắng ("w")
+      const playerColor = "w"; 
+      if (game.isCheckmate()) {
+        // Nếu lượt đi hiện hành chính là màu người chơi, nghĩa là người chơi bị chiếu hết, còn nếu không thì người chơi thắng.
+        result = game.turn() === playerColor 
+          ? "Bạn thua (chiếu hết)!" 
+          : "Bạn đã thắng!";
+      } else if (game.isStalemate()) {
+        result = "Stalemate!";
+      } else if (game.isInsufficientMaterial()) {
+        result = "Hòa (không đủ quân)!";
+      } else if (game.isThreefoldRepetition()) {
+        result = "Hòa (lặp lại ba lần)!";
+      } else {
+        result = "Hòa!";
+      }
+      setGameResult(result);
+    }
   }, [game]);
+  
 
-  // Hàm thực hiện nước đi mới
+  // Hàm thực hiện nước đi mới; sử dụng cùng một instance và clone lại để giữ lịch sử
   const handleMove = (from, to, promotion = null) => {
     const move = game.move({ from, to, promotion });
     if (move) {
       setGame(cloneGame(game));
-      setRedoStack([]); // Xoá redoStack khi có nước đi mới
+      setRedoStack([]);
       return true;
     }
     return false;
@@ -45,7 +67,6 @@ const MainLayout = () => {
   // Redo: tiến lại nước đi đã undo
   const handleRedo = () => {
     if (redoStack.length === 0) return;
-    // Lấy nước đi cuối cùng từ redoStack
     const moveToRedo = redoStack[redoStack.length - 1];
     const move = game.move(moveToRedo.san);
     if (move) {
@@ -59,6 +80,7 @@ const MainLayout = () => {
     alert("Bạn thua (đầu hàng)!");
     setGame(new Chess());
     setRedoStack([]);
+    setGameResult(null);
   };
 
   // Xin hòa: hiện thông báo (chưa hoạt động)
@@ -71,7 +93,20 @@ const MainLayout = () => {
     setOrientation(prev => (prev === "white" ? "black" : "white"));
   };
 
-  // Lấy lịch sử nước đi dạng verbose để truyền cho Sidebar
+  // Nút Ván mới trong popup: reset game
+  const handleNewGame = () => {
+    setGame(new Chess());
+    setRedoStack([]);
+    setGameResult(null);
+  };
+
+  // Nút Trang chủ trong popup: chuyển hướng về trang chủ
+  const handleHome = () => {
+    // Ví dụ: chuyển hướng về trang chủ, bạn có thể dùng react-router hoặc window.location
+    window.location.href = "/";
+  };
+
+  // Lấy lịch sử nước đi (dạng verbose) để truyền cho Sidebar
   const moveHistory = game.history({ verbose: true });
 
   return (
@@ -92,7 +127,7 @@ const MainLayout = () => {
             handleMove={handleMove} 
             orientation={orientation}
           />
-          {/* Nút phụ cho bàn cờ */}
+          {/* Các nút phụ cho bàn cờ */}
           <div className="mt-4 flex space-x-4">
             <button 
               onClick={handleToggleOrientation}
@@ -101,7 +136,7 @@ const MainLayout = () => {
               Xoay bàn cờ
             </button>
             <button 
-              onClick={() => { setGame(new Chess()); setRedoStack([]); }}
+              onClick={() => { setGame(new Chess()); setRedoStack([]); setGameResult(null); }}
               className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
             >
               Ván mới
@@ -122,6 +157,11 @@ const MainLayout = () => {
       </div>
 
       <Footer />
+
+      {/* Popup kết quả game */}
+      {gameResult && (
+        <GameResultPopup result={gameResult} onHome={handleHome} onNewGame={handleNewGame} />
+      )}
     </div>
   );
 };
