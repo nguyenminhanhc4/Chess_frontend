@@ -6,7 +6,8 @@ import Sidebar from "./sidebar";
 import Footer from "./footer";
 import ChessBoard from "../components/chessboard";
 
-const cloneChess = (gameInstance) => {
+// Hàm clone instance Chess, giữ lại lịch sử
+const cloneGame = (gameInstance) => {
   return Object.assign(Object.create(Object.getPrototypeOf(gameInstance)), gameInstance);
 };
 
@@ -15,17 +16,17 @@ const MainLayout = () => {
   const [redoStack, setRedoStack] = useState([]);
   const [orientation, setOrientation] = useState("white");
 
-  // Sử dụng useEffect để log moveHistory mỗi khi game thay đổi
+  // Debug: log lịch sử nước đi mỗi khi game thay đổi
   useEffect(() => {
     console.log("moveHistory:", game.history({ verbose: true }));
   }, [game]);
 
-  // Thực hiện nước đi mới; nếu thành công, xóa redoStack (redo chỉ hợp lệ khi Undo liên tục)
+  // Hàm thực hiện nước đi mới
   const handleMove = (from, to, promotion = null) => {
     const move = game.move({ from, to, promotion });
     if (move) {
-      setGame(cloneChess(game));
-      setRedoStack([]);
+      setGame(cloneGame(game));
+      setRedoStack([]); // Xoá redoStack khi có nước đi mới
       return true;
     }
     return false;
@@ -33,25 +34,23 @@ const MainLayout = () => {
 
   // Undo: lùi lại nước đi cuối cùng và lưu vào redoStack
   const handleUndo = () => {
-    const newGame = new Chess(game.fen());
-    const undoneMove = newGame.undo();
+    if (game.history().length === 0) return;
+    const undoneMove = game.undo();
     if (undoneMove) {
       setRedoStack(prev => [...prev, undoneMove]);
-      setGame(newGame);
+      setGame(cloneGame(game));
     }
   };
 
   // Redo: tiến lại nước đi đã undo
   const handleRedo = () => {
     if (redoStack.length === 0) return;
-    // Lấy nước đi cuối cùng trong redoStack
+    // Lấy nước đi cuối cùng từ redoStack
     const moveToRedo = redoStack[redoStack.length - 1];
-    const newGame = new Chess(game.fen());
-    // Áp dụng lại nước đi đó theo SAN
-    const move = newGame.move(moveToRedo.san);
+    const move = game.move(moveToRedo.san);
     if (move) {
       setRedoStack(prev => prev.slice(0, prev.length - 1));
-      setGame(newGame);
+      setGame(cloneGame(game));
     }
   };
 
@@ -72,14 +71,14 @@ const MainLayout = () => {
     setOrientation(prev => (prev === "white" ? "black" : "white"));
   };
 
-  // Lấy lịch sử nước đi (dạng verbose) để hiển thị trong Sidebar
+  // Lấy lịch sử nước đi dạng verbose để truyền cho Sidebar
   const moveHistory = game.history({ verbose: true });
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      {/* Nội dung chính: 3 cột */}
+      {/* Nội dung chính: chia thành 3 cột */}
       <div className="flex flex-grow">
         {/* Nav ở bên trái */}
         <div className="w-1/5 h-full border-r border-gray-300">
@@ -93,7 +92,7 @@ const MainLayout = () => {
             handleMove={handleMove} 
             orientation={orientation}
           />
-          {/* Các nút phụ cho bàn cờ nếu cần */}
+          {/* Nút phụ cho bàn cờ */}
           <div className="mt-4 flex space-x-4">
             <button 
               onClick={handleToggleOrientation}
