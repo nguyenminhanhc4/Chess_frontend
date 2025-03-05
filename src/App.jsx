@@ -1,14 +1,17 @@
-import './App.css'
+import './App.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MainLayout from "./layout/main";
-import ChessBoard from "./components/chessboard";
+import Login from "./layout/Login";
 
 function App() {
   return (
-    <MainLayout>
-      <ChessBoard />
-    </MainLayout>
+    <Router>
+      <Routes>
+        <Route path="/" element={<MainLayout />} />
+        <Route path="/login" element={<Login />} />
+      </Routes>
+    </Router>
   );
 }
 
 export default App;
-
