@@ -24,7 +24,7 @@ const MainLayout = () => {
     if (game.isGameOver()) {
       let result = "";
       // Giả sử người chơi là trắng ("w")
-      const playerColor = "w"; 
+      const playerColor = "w";
       if (game.isCheckmate()) {
         result = game.turn() === playerColor 
           ? "Bạn thua (chiếu hết)!" 
@@ -93,16 +93,21 @@ const MainLayout = () => {
     setOrientation((prev) => (prev === "white" ? "black" : "white"));
   };
 
-  // Nút Ván mới
+  // Nút Ván mới: reset game
   const handleNewGame = () => {
     setGame(new Chess());
     setRedoStack([]);
     setGameResult(null);
   };
 
-  // Nút Trang chủ trong popup
+  // Nút Trang chủ trong popup: chuyển hướng về trang chủ
   const handleHome = () => {
     window.location.href = "/";
+  };
+
+  // Xử lý đóng popup: đặt lại gameResult thành null
+  const handleClosePopup = () => {
+    setGameResult(null);
   };
 
   // Lấy lịch sử nước đi (dạng verbose) để truyền cho Sidebar
@@ -146,19 +151,19 @@ const MainLayout = () => {
   // Khối chứa bàn cờ và nút điều khiển bên phải
   const boardBlock = (
     <div className="flex items-center">
-      <ChessBoard
-        game={game}
-        handleMove={handleMove}
+      <ChessBoard 
+        game={game} 
+        handleMove={handleMove} 
         orientation={orientation}
       />
       <div className="ml-4 flex flex-col space-y-4">
-        <button
+        <button 
           onClick={handleToggleOrientation}
           className="p-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
         >
           <FaSyncAlt size={24} />
         </button>
-        <button
+        <button 
           onClick={handleNewGame}
           className="p-2 bg-green-500 text-white rounded hover:bg-green-600"
         >
@@ -195,7 +200,7 @@ const MainLayout = () => {
         </div>
 
         <div className="w-1/5 h-full border-l border-gray-300">
-          <Sidebar
+          <Sidebar 
             moveHistory={moveHistory}
             onSurrender={handleSurrender}
             onUndo={handleUndo}
@@ -212,10 +217,11 @@ const MainLayout = () => {
           result={gameResult}
           onHome={handleHome}
           onNewGame={handleNewGame}
+          onClose={handleClosePopup}
         />
       )}
     </div>
   );
 };
 
-export default MainLayout; 
+export default MainLayout;
