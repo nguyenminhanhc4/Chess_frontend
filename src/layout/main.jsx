@@ -8,7 +8,6 @@ import ChessBoard from "../components/chessboard";
 import GameResultPopup from "./GameResultPopup"; // Đảm bảo đường dẫn đúng
 import { FaSyncAlt, FaRedoAlt } from "react-icons/fa";
 
-
 // Hàm clone game để trigger re-render mà vẫn giữ lịch sử
 const cloneGame = (gameInstance) => {
   return Object.assign(Object.create(Object.getPrototypeOf(gameInstance)), gameInstance);
@@ -24,10 +23,9 @@ const MainLayout = () => {
   useEffect(() => {
     if (game.isGameOver()) {
       let result = "";
-      // Giả sử bạn có playerColor lưu trong state; nếu không, giả sử người chơi là trắng ("w")
+      // Giả sử người chơi là trắng ("w")
       const playerColor = "w"; 
       if (game.isCheckmate()) {
-        // Nếu lượt đi hiện hành chính là màu người chơi, nghĩa là người chơi bị chiếu hết, còn nếu không thì người chơi thắng.
         result = game.turn() === playerColor 
           ? "Bạn thua (chiếu hết)!" 
           : "Bạn đã thắng!";
@@ -43,9 +41,12 @@ const MainLayout = () => {
       setGameResult(result);
     }
   }, [game]);
-  
 
-  // Hàm thực hiện nước đi mới; sử dụng cùng một instance và clone lại để giữ lịch sử
+  // Lấy lượt hiện tại
+  const isWhiteTurn = game.turn() === "w";
+  const isBlackTurn = game.turn() === "b";
+
+  // Hàm thực hiện nước đi mới
   const handleMove = (from, to, promotion = null) => {
     const move = game.move({ from, to, promotion });
     if (move) {
@@ -61,7 +62,7 @@ const MainLayout = () => {
     if (game.history().length === 0) return;
     const undoneMove = game.undo();
     if (undoneMove) {
-      setRedoStack(prev => [...prev, undoneMove]);
+      setRedoStack((prev) => [...prev, undoneMove]);
       setGame(cloneGame(game));
     }
   };
@@ -72,12 +73,12 @@ const MainLayout = () => {
     const moveToRedo = redoStack[redoStack.length - 1];
     const move = game.move(moveToRedo.san);
     if (move) {
-      setRedoStack(prev => prev.slice(0, prev.length - 1));
+      setRedoStack((prev) => prev.slice(0, prev.length - 1));
       setGame(cloneGame(game));
     }
   };
 
-  // Đầu hàng: reset game và thông báo thất bại
+  // Đầu hàng: hiển thị popup thay vì alert
   const handleSurrender = () => {
     setGameResult("Bạn thua (đầu hàng)!");
   };
@@ -87,26 +88,85 @@ const MainLayout = () => {
     alert("Chức năng xin hòa chưa được hỗ trợ!");
   };
 
-  // Xoay bàn cờ
+  // Xoay bàn cờ: đồng thời xoay luôn thông tin hiển thị người chơi
   const handleToggleOrientation = () => {
-    setOrientation(prev => (prev === "white" ? "black" : "white"));
+    setOrientation((prev) => (prev === "white" ? "black" : "white"));
   };
 
-  // Nút Ván mới trong popup: reset game
+  // Nút Ván mới
   const handleNewGame = () => {
     setGame(new Chess());
     setRedoStack([]);
     setGameResult(null);
   };
 
-  // Nút Trang chủ trong popup: chuyển hướng về trang chủ
+  // Nút Trang chủ trong popup
   const handleHome = () => {
-    // Ví dụ: chuyển hướng về trang chủ, bạn có thể dùng react-router hoặc window.location
     window.location.href = "/";
   };
 
   // Lấy lịch sử nước đi (dạng verbose) để truyền cho Sidebar
   const moveHistory = game.history({ verbose: true });
+
+  // Khối hiển thị thông tin người chơi
+  const opponentInfo = (
+    <div className="flex items-center justify-center space-x-2 mb-2">
+      <img
+        src="./../public/vite.svg"
+        alt="Opponent"
+        className="w-8 h-8 rounded-full"
+      />
+      <div
+        className={`text-white px-2 py-1 rounded ${
+          isBlackTurn ? "bg-green-600" : "bg-gray-700"
+        }`}
+      >
+        Martin M. Martin (260)
+      </div>
+    </div>
+  );
+
+  const youInfo = (
+    <div className="flex items-center justify-center space-x-2 mt-2">
+      <img
+        src="./../public/vite.svg"
+        alt="You"
+        className="w-8 h-8 rounded-full"
+      />
+      <div
+        className={`text-white px-2 py-1 rounded ${
+          isWhiteTurn ? "bg-green-600" : "bg-gray-700"
+        }`}
+      >
+        Kazixh (1606)
+      </div>
+    </div>
+  );
+
+  // Khối chứa bàn cờ và nút điều khiển bên phải
+  const boardBlock = (
+    <div className="flex items-center">
+      <ChessBoard
+        game={game}
+        handleMove={handleMove}
+        orientation={orientation}
+      />
+      <div className="ml-4 flex flex-col space-y-4">
+        <button
+          onClick={handleToggleOrientation}
+          className="p-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+        >
+          <FaSyncAlt size={24} />
+        </button>
+        <button
+          onClick={handleNewGame}
+          className="p-2 bg-green-500 text-white rounded hover:bg-green-600"
+        >
+          <FaRedoAlt size={24} />
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -117,32 +177,25 @@ const MainLayout = () => {
           <Nav />
         </div>
 
-        {/* Container bàn cờ và nút bấm được sắp xếp theo hàng ngang */}
-        <div className="w-3/5 flex items-center justify-center">
-          <ChessBoard 
-            game={game} 
-            handleMove={handleMove} 
-            orientation={orientation}
-          />
-          {/* Nút bấm bên phải bàn cờ */}
-          <div className="ml-4 flex flex-col space-y-4">
-            <button 
-              onClick={handleToggleOrientation}
-              className="p-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-            >
-              <FaSyncAlt size={24} />
-            </button>
-            <button 
-              onClick={() => { setGame(new Chess()); setRedoStack([]); setGameResult(null); }}
-              className="p-2 bg-green-500 text-white rounded hover:bg-green-600"
-            >
-              <FaRedoAlt size={24} />
-            </button>
-          </div>
+        {/* Khu vực trung tâm: thông tin người chơi + bàn cờ */}
+        <div className="w-3/5 flex flex-col items-center justify-center">
+          {orientation === "white" ? (
+            <>
+              {opponentInfo}
+              {boardBlock}
+              {youInfo}
+            </>
+          ) : (
+            <>
+              {youInfo}
+              {boardBlock}
+              {opponentInfo}
+            </>
+          )}
         </div>
 
         <div className="w-1/5 h-full border-l border-gray-300">
-          <Sidebar 
+          <Sidebar
             moveHistory={moveHistory}
             onSurrender={handleSurrender}
             onUndo={handleUndo}
@@ -155,7 +208,11 @@ const MainLayout = () => {
       <Footer />
 
       {gameResult && (
-        <GameResultPopup result={gameResult} onHome={handleHome} onNewGame={handleNewGame} />
+        <GameResultPopup
+          result={gameResult}
+          onHome={handleHome}
+          onNewGame={handleNewGame}
+        />
       )}
     </div>
   );
