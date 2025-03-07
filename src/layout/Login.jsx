@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import { useState, useContext } from 'react';
 import axios from 'axios';
 import { GiChessKing } from 'react-icons/gi';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { UserAuthContext } from '../context/UserAuthContext'; // Thêm import context
 
 const Login = () => {
   const navigate = useNavigate(); // Khởi tạo navigate
+  const { updateUserFromToken } = useContext(UserAuthContext); // Lấy hàm cập nhật context
 
   // State để theo dõi xem hiển thị form đăng nhập hay đăng ký
   const [isLogin, setIsLogin] = useState(true);
@@ -32,7 +34,10 @@ const Login = () => {
       // Lưu token vào localStorage
       localStorage.setItem('token', response.data.token);
       
-      // Chuyển hướng đến trang Main
+      // Cập nhật context sau khi lưu token để header tự động re-render
+      updateUserFromToken();
+
+      // Chuyển hướng đến trang Main (hoặc trang chủ)
       navigate('/');
       
     } catch (error) {
