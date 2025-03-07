@@ -1,5 +1,5 @@
 // nav.jsx
-import { FaGamepad, FaRobot, FaChartBar, FaSignOutAlt } from "react-icons/fa";
+import { FaGamepad, FaRobot, FaChartBar } from "react-icons/fa";
 
 const Nav = () => {
   return (
@@ -16,10 +16,6 @@ const Nav = () => {
         <li className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-600 cursor-pointer">
           <FaChartBar />
           <a href="#">Lưu trữ và phân tích ván đấu</a>
-        </li>
-        <li className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-600 cursor-pointer">
-          <FaSignOutAlt />
-          <a href="#">Logout</a>
         </li>
       </ul>
     </nav>

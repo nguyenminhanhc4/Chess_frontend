@@ -33,7 +33,7 @@ const Login = () => {
       localStorage.setItem('token', response.data.token);
       
       // Chuyển hướng đến trang Main
-      navigate('/main');
+      navigate('/');
       
     } catch (error) {
       console.error("Lỗi đăng nhập:", error.response ? error.response.data : error.message);
