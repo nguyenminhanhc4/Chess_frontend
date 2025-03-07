@@ -1,17 +1,16 @@
 import PropTypes from "prop-types";
+import { FaUndo, FaRedo, FaHandPaper, FaHandsHelping, FaPlus } from "react-icons/fa";
 
-const Sidebar = ({ moveHistory, onSurrender, onUndo, onRedo, onRequestDraw }) => {
+const Sidebar = ({ moveHistory, onSurrender, onUndo, onRedo, onRequestDraw, onNewGame }) => {
   // Nhóm các nước đi thành cặp dựa theo thuộc tính color
   const movePairs = [];
   for (let i = 0; i < moveHistory.length; i++) {
-    // Nếu nước đi hiện tại của trắng
     if (moveHistory[i].color === "w") {
       const whiteMove = moveHistory[i].san;
       let blackMove = "";
-      // Kiểm tra nếu phần tử kế tiếp tồn tại và có màu đen
       if (i + 1 < moveHistory.length && moveHistory[i + 1].color === "b") {
         blackMove = moveHistory[i + 1].san;
-        i++; // bỏ qua nước đi đen vừa lấy
+        i++;
       }
       movePairs.push({
         moveNumber: movePairs.length + 1,
@@ -19,7 +18,6 @@ const Sidebar = ({ moveHistory, onSurrender, onUndo, onRedo, onRequestDraw }) =>
         black: blackMove,
       });
     } else {
-      // Trường hợp nước đi không bắt đầu bằng trắng (rất hiếm)
       movePairs.push({
         moveNumber: movePairs.length + 1,
         white: "",
@@ -30,52 +28,80 @@ const Sidebar = ({ moveHistory, onSurrender, onUndo, onRedo, onRequestDraw }) =>
 
   return (
     <aside className="min-h-screen bg-gray-800 text-white p-4 w-full flex flex-col">
-      {/* Tiêu đề */}
+      {/* Phần tiêu đề */}
       <div className="mb-4">
         <h2 className="text-xl font-bold text-center">Biên bản</h2>
+        <hr className="border-gray-600 mt-2" />
       </div>
 
-      {/* Danh sách nước đi */}
-      <div className="flex-1 overflow-auto">
-        <ul className="space-y-2">
-          {movePairs.map((pair) => (
-            <li key={pair.moveNumber} className="flex items-center p-2 bg-gray-700 rounded">
-              <span className="font-bold w-6">{pair.moveNumber}.</span>
-              <span className="mx-2">{pair.white}</span>
-              {pair.black && <span className="ml-16 text-right">{pair.black}</span>}
-            </li>
-          ))}
-        </ul>
-      </div>
+      {/* Lịch sử nước đi */}
+<div className="flex-1 overflow-y-auto max-h-[450px] mb-4 custom-scrollbar">
+  {movePairs.length > 0 ? (
+    <table className="w-full text-sm">
+      <thead>
+        <tr>
+          <th className="text-left">#</th>
+          <th className="text-left">Trắng</th>
+          <th className="text-left">Đen</th>
+        </tr>
+      </thead>
+      <tbody>
+        {movePairs.map((pair) => (
+          <tr key={pair.moveNumber} className="hover:bg-gray-700">
+            <td className="p-1">{pair.moveNumber}.</td>
+            <td className="p-1">{pair.white}</td>
+            <td className="p-1">{pair.black}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  ) : (
+    <p className="text-gray-500 text-center">Chưa có nước đi nào.</p>
+  )}
+</div>
 
-      {/* Các nút điều khiển */}
-      <div className="mt-4">
-        <div className="flex flex-col space-y-2">
+
+
+      {/* Nút điều khiển */}
+      <div className="flex flex-col space-y-2">
+        <button
+          onClick={onUndo}
+          className="w-full flex items-center justify-center space-x-2 p-2 bg-blue-500 hover:bg-blue-600 rounded"
+        >
+          <FaUndo />
+          <span>Lùi lại</span>
+        </button>
+        <button
+          onClick={onRedo}
+          className="w-full flex items-center justify-center space-x-2 p-2 bg-green-500 hover:bg-green-600 rounded"
+        >
+          <FaRedo />
+          <span>Tiến tới</span>
+        </button>
+        <button
+          onClick={onSurrender}
+          className="w-full flex items-center justify-center space-x-2 p-2 bg-red-500 hover:bg-red-600 rounded"
+        >
+          <FaHandPaper />
+          <span>Đầu hàng</span>
+        </button>
+        <button
+          onClick={onRequestDraw}
+          className="w-full flex items-center justify-center space-x-2 p-2 bg-yellow-500 hover:bg-yellow-600 rounded"
+        >
+          <FaHandsHelping />
+          <span>Xin hòa</span>
+        </button>
+        {/* Nút ván mới */}
+        {onNewGame && (
           <button
-            onClick={onSurrender}
-            className="w-full p-2 bg-red-600 hover:bg-red-700 rounded"
+            onClick={onNewGame}
+            className="w-full flex items-center justify-center space-x-2 p-2 bg-purple-500 hover:bg-purple-600 rounded"
           >
-            Đầu hàng
+            <FaPlus />
+            <span>Ván mới</span>
           </button>
-          <button
-            onClick={onUndo}
-            className="w-full p-2 bg-gray-600 hover:bg-gray-700 rounded"
-          >
-            Lùi lại
-          </button>
-          <button
-            onClick={onRedo}
-            className="w-full p-2 bg-gray-600 hover:bg-gray-700 rounded"
-          >
-            Tiến tới
-          </button>
-          <button
-            onClick={onRequestDraw}
-            className="w-full p-2 bg-blue-600 hover:bg-blue-700 rounded"
-          >
-            Xin hòa
-          </button>
-        </div>
+        )}
       </div>
     </aside>
   );
@@ -87,6 +113,7 @@ Sidebar.propTypes = {
   onUndo: PropTypes.func.isRequired,
   onRedo: PropTypes.func.isRequired,
   onRequestDraw: PropTypes.func.isRequired,
+  onNewGame: PropTypes.func, // Có thể không bắt buộc
 };
 
 export default Sidebar;

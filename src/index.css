@@ -5,3 +5,14 @@
 body {
   background-color: #302e2b; /* Màu vàng nhạt */
 }
+
+/* Ẩn thanh scroll cho Firefox */
+.custom-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+
+/* Ẩn thanh scroll cho WebKit (Chrome, Safari) */
+.custom-scrollbar::-webkit-scrollbar {
+  display: none;
+}
