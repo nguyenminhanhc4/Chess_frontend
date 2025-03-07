@@ -29,7 +29,7 @@ const Sidebar = ({ moveHistory, onSurrender, onUndo, onRedo, onRequestDraw }) =>
   }
 
   return (
-    <aside className="h-screen bg-gray-800 text-white p-4 w-full flex flex-col">
+    <aside className="min-h-screen bg-gray-800 text-white p-4 w-full flex flex-col">
       {/* Tiêu đề */}
       <div className="mb-4">
         <h2 className="text-xl font-bold text-center">Biên bản</h2>

@@ -12,12 +12,12 @@ const Header = () => {
   };
 
   return (
-    <header className="w-full bg-gray-800 text-white py-1 px-2 flex items-center justify-between shadow-md">
+    <header className="w-full h-11 bg-gray-800 text-white py-0.5 px-2 flex items-center justify-between shadow-md">
       {/* Phần bên trái: logo và tên app */}
       <div className="flex items-center">
         <div className="w-16 h-16 rounded-full overflow-hidden mr-2">
           <img
-            src="/logo_chess_app.png"  // Đường dẫn từ thư mục public
+            src="/logo_chess_app.png"  // Đảm bảo file logo nằm trong thư mục public
             alt="Chess App Logo"
             className="object-cover w-full h-full"
           />
@@ -29,6 +29,11 @@ const Header = () => {
       <div className="flex items-center space-x-4">
         {user ? (
           <div className="flex items-center space-x-3">
+            <img
+              src={user.profilePicture || "/vite.svg"}
+              alt="User Avatar"
+              className="w-10 h-10 rounded-full border-2 border-blue-300"
+            />
             <span className="text-sm md:text-base">Xin chào, {user.username}</span>
             <button onClick={handleLogout} className="text-red-500 hover:text-red-600">
               <FaSignOutAlt size={24} />
