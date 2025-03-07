@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { GiChessKing } from 'react-icons/gi';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const Login = () => {
+  const navigate = useNavigate(); // Khởi tạo navigate
+
   // State để theo dõi xem hiển thị form đăng nhập hay đăng ký
   const [isLogin, setIsLogin] = useState(true);
 
@@ -16,21 +20,48 @@ const Login = () => {
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
 
   // Xử lý submit cho form đăng nhập
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    console.log("Đăng nhập:", loginEmail, loginPassword);
-    // Xử lý đăng nhập (gọi API, vv.)
+    try {
+      const response = await axios.post('http://localhost:8080/api/auth/login', {
+        email: loginEmail,
+        password: loginPassword,
+      });
+      console.log("Đăng nhập thành công:", response.data);
+      
+      // Lưu token vào localStorage
+      localStorage.setItem('token', response.data.token);
+      
+      // Chuyển hướng đến trang Main
+      navigate('/main');
+      
+    } catch (error) {
+      console.error("Lỗi đăng nhập:", error.response ? error.response.data : error.message);
+      alert("Đăng nhập thất bại!");
+    }
   };
 
   // Xử lý submit cho form đăng ký
-  const handleRegisterSubmit = (e) => {
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     if (registerPassword !== registerConfirmPassword) {
       alert("Mật khẩu nhập lại không khớp!");
       return;
     }
-    console.log("Đăng ký:", registerUsername, registerEmail, registerPassword);
-    // Xử lý đăng ký (gọi API, vv.)
+    try {
+      const response = await axios.post('http://localhost:8080/api/auth/register', {
+        username: registerUsername,
+        email: registerEmail,
+        password: registerPassword,
+        confirmPassword: registerConfirmPassword,
+      });
+      console.log("Đăng ký thành công:", response.data);
+      alert("Đăng ký thành công! Hãy đăng nhập.");
+      setIsLogin(true);
+    } catch (error) {
+      console.error("Lỗi đăng ký:", error.response ? error.response.data : error.message);
+      alert("Đăng ký thất bại!");
+    }
   };
 
   // Class cho floating input field
