@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Chess } from "chess.js";
 import Header from "./header";
 import Nav from "./nav";
@@ -7,6 +7,7 @@ import Footer from "./footer";
 import ChessBoard from "../components/chessboard";
 import GameResultPopup from "./GameResultPopup"; // Đảm bảo đường dẫn đúng
 import { FaSyncAlt, FaRedoAlt } from "react-icons/fa";
+import { UserAuthContext } from "../context/UserAuthContext"; // Import context để lấy thông tin user
 
 // Hàm clone game để trigger re-render mà vẫn giữ lịch sử
 const cloneGame = (gameInstance) => {
@@ -18,6 +19,9 @@ const MainLayout = () => {
   const [redoStack, setRedoStack] = useState([]);
   const [orientation, setOrientation] = useState("white");
   const [gameResult, setGameResult] = useState(null);
+  
+  // Lấy thông tin người dùng từ context
+  const { user } = useContext(UserAuthContext);
 
   // Kiểm tra game over mỗi khi game thay đổi
   useEffect(() => {
@@ -113,7 +117,7 @@ const MainLayout = () => {
   // Lấy lịch sử nước đi (dạng verbose) để truyền cho Sidebar
   const moveHistory = game.history({ verbose: true });
 
-  // Khối hiển thị thông tin người chơi
+  // Khối hiển thị thông tin đối thủ
   const opponentInfo = (
     <div className="flex items-center justify-center space-x-2 mb-2">
       <img
@@ -131,10 +135,13 @@ const MainLayout = () => {
     </div>
   );
 
+  // Khối hiển thị thông tin người chơi của bạn ("your info")
+  // Nếu người dùng đã đăng nhập (tồn tại user), hiển thị tên và rating từ context,
+  // ngược lại hiển thị thông tin mặc định
   const youInfo = (
     <div className="flex items-center justify-center space-x-2 mt-2">
       <img
-        src="./../public/vite.svg"
+        src={user && user.avatar ? user.avatar : "./../public/vite.svg"}
         alt="You"
         className="w-8 h-8 rounded-full"
       />
@@ -143,7 +150,7 @@ const MainLayout = () => {
           isWhiteTurn ? "bg-green-600" : "bg-gray-700"
         }`}
       >
-        Kazixh (1606)
+        {user ? `${user.username} (${user.rating ?? "N/A"})` : "Kazixh (1606)"}
       </div>
     </div>
   );
