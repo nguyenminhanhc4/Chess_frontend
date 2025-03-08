@@ -130,7 +130,7 @@ const MainLayout = () => {
           isBlackTurn ? "bg-green-600" : "bg-gray-700"
         }`}
       >
-        Martin M. Martin (260)
+        Bot (600)
       </div>
     </div>
   );
@@ -150,7 +150,7 @@ const MainLayout = () => {
           isWhiteTurn ? "bg-green-600" : "bg-gray-700"
         }`}
       >
-        {user ? `${user.username} (${user.rating ?? "N/A"})` : "Kazixh (1606)"}
+        {user ? `${user.username} (${user.rating ?? "N/A"})` : "User (600)"}
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { FaGamepad, FaRobot, FaChartBar, FaHome, FaCog } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import { useContext } from "react";
 import { UserAuthContext } from "../context/UserAuthContext";
 
@@ -9,12 +10,12 @@ const Nav = () => {
     <nav className="min-h-screen bg-gray-700 text-white p-6 w-full flex flex-col justify-between">
       {/* Phần trên */}
       <div>
-        {/* Logo hình tròn và text "Chess App" căn chỉnh sang bên trái */}
+        {/* Logo hình tròn và text "Chess App" */}
         <div className="flex flex-col items-start mb-8">
           <div className="flex items-center space-x-1">
             <div className="w-16 h-16 rounded-full overflow-hidden">
               <img
-                src="/logo_chess_app.png"  // Đảm bảo file nằm trong public, chỉ cần đường dẫn từ gốc
+                src="/logo_chess_app.png"  // Đảm bảo file nằm trong public
                 alt="Chess App Logo"
                 className="object-cover w-full h-full"
               />
@@ -43,31 +44,27 @@ const Nav = () => {
           <li className="text-gray-400 uppercase text-xs tracking-wider">Chế độ chơi</li>
           <li className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-600 cursor-pointer">
             <FaGamepad />
-            <a href="#">Chơi trực tuyến</a>
+            <Link to="/online" className="text-white">Chơi trực tuyến</Link>
           </li>
           <li className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-600 cursor-pointer">
             <FaRobot />
-            <a href="#">Chơi với máy</a>
+            <Link to="/main" className="text-white">Chơi với máy</Link>
           </li>
 
-          <li className="mt-6 text-gray-400 uppercase text-xs tracking-wider">
-            Phân tích & Lịch sử
-          </li>
+          <li className="mt-6 text-gray-400 uppercase text-xs tracking-wider">Phân tích & Lịch sử</li>
           <li className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-600 cursor-pointer">
             <FaChartBar />
-            <a href="#">Lưu trữ & phân tích ván đấu</a>
+            <Link to="/analysis" className="text-white">Lưu trữ & phân tích ván đấu</Link>
           </li>
 
-          <li className="mt-6 text-gray-400 uppercase text-xs tracking-wider">
-            Khác
-          </li>
+          <li className="mt-6 text-gray-400 uppercase text-xs tracking-wider">Khác</li>
           <li className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-600 cursor-pointer">
             <FaHome />
-            <a href="#">Trang chủ</a>
+            <Link to="/" className="text-white">Trang chủ</Link>
           </li>
           <li className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-600 cursor-pointer">
             <FaCog />
-            <a href="#">Cài đặt</a>
+            <Link to="/settings" className="text-white">Cài đặt</Link>
           </li>
         </ul>
       </div>

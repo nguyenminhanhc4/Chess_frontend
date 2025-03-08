@@ -38,7 +38,7 @@ const Login = () => {
       updateUserFromToken();
 
       // Chuyển hướng đến trang Main (hoặc trang chủ)
-      navigate('/');
+      navigate('/main');
       
     } catch (error) {
       console.error("Lỗi đăng nhập:", error.response ? error.response.data : error.message);
