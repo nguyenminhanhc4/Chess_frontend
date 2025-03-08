@@ -1,7 +1,15 @@
 import PropTypes from "prop-types";
-import { FaUndo, FaRedo, FaHandPaper, FaHandsHelping, FaPlus } from "react-icons/fa";
+import { FaUndo, FaRedo, FaHandPaper, FaPlus, FaChessKnight } from "react-icons/fa";
 
-const Sidebar = ({ moveHistory, onSurrender, onUndo, onRedo, onRequestDraw, onNewGame }) => {
+const Sidebar = ({ 
+  moveHistory, 
+  onSurrender, 
+  onUndo, 
+  onRedo, 
+  onNewGame, 
+  difficulty, 
+  onDifficultyChange 
+}) => {
   // Nhóm các nước đi thành cặp dựa theo thuộc tính color
   const movePairs = [];
   for (let i = 0; i < moveHistory.length; i++) {
@@ -10,7 +18,7 @@ const Sidebar = ({ moveHistory, onSurrender, onUndo, onRedo, onRequestDraw, onNe
       let blackMove = "";
       if (i + 1 < moveHistory.length && moveHistory[i + 1].color === "b") {
         blackMove = moveHistory[i + 1].san;
-        i++;
+        i++; // bỏ qua nước đi đen vừa lấy
       }
       movePairs.push({
         moveNumber: movePairs.length + 1,
@@ -35,34 +43,57 @@ const Sidebar = ({ moveHistory, onSurrender, onUndo, onRedo, onRequestDraw, onNe
       </div>
 
       {/* Lịch sử nước đi */}
-<div className="flex-1 overflow-y-auto max-h-[450px] mb-4 custom-scrollbar">
-  {movePairs.length > 0 ? (
-    <table className="w-full text-sm">
-      <thead>
-        <tr>
-          <th className="text-left">#</th>
-          <th className="text-left">Trắng</th>
-          <th className="text-left">Đen</th>
-        </tr>
-      </thead>
-      <tbody>
-        {movePairs.map((pair) => (
-          <tr key={pair.moveNumber} className="hover:bg-gray-700">
-            <td className="p-1">{pair.moveNumber}.</td>
-            <td className="p-1">{pair.white}</td>
-            <td className="p-1">{pair.black}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  ) : (
-    <p className="text-gray-500 text-center">Chưa có nước đi nào.</p>
-  )}
-</div>
+      <div className="flex-1 overflow-auto max-h-[450px] mb-4 custom-scrollbar">
+        {movePairs.length > 0 ? (
+          <table className="w-full text-sm">
+            <thead>
+              <tr>
+                <th className="text-left">#</th>
+                <th className="text-left">Trắng</th>
+                <th className="text-left">Đen</th>
+              </tr>
+            </thead>
+            <tbody>
+              {movePairs.map((pair) => (
+                <tr key={pair.moveNumber} className="hover:bg-gray-700">
+                  <td className="p-1">{pair.moveNumber}.</td>
+                  <td className="p-1">{pair.white}</td>
+                  <td className="p-1">{pair.black}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="text-gray-500 text-center">Chưa có nước đi nào.</p>
+        )}
+      </div>
 
+      {/* Control Row: Dropdown độ khó & Nút Ván mới */}
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center">
+          <FaChessKnight className="text-white mr-2" />
+          <select
+            value={difficulty}
+            onChange={(e) => onDifficultyChange(e.target.value)}
+            className="p-2 bg-gray-700 text-white rounded border border-gray-600"
+          >
+            <option value="easy">Dễ</option>
+            <option value="medium">Trung bình</option>
+            <option value="hard">Khó</option>
+          </select>
+        </div>
+        {onNewGame && (
+          <button
+            onClick={onNewGame}
+            className="p-2 bg-purple-500 hover:bg-purple-600 rounded"
+            title="Ván mới"
+          >
+            <FaPlus className="text-white" />
+          </button>
+        )}
+      </div>
 
-
-      {/* Nút điều khiển */}
+      {/* Các nút điều khiển khác */}
       <div className="flex flex-col space-y-2">
         <button
           onClick={onUndo}
@@ -85,23 +116,6 @@ const Sidebar = ({ moveHistory, onSurrender, onUndo, onRedo, onRequestDraw, onNe
           <FaHandPaper />
           <span>Đầu hàng</span>
         </button>
-        <button
-          onClick={onRequestDraw}
-          className="w-full flex items-center justify-center space-x-2 p-2 bg-yellow-500 hover:bg-yellow-600 rounded"
-        >
-          <FaHandsHelping />
-          <span>Xin hòa</span>
-        </button>
-        {/* Nút ván mới */}
-        {onNewGame && (
-          <button
-            onClick={onNewGame}
-            className="w-full flex items-center justify-center space-x-2 p-2 bg-purple-500 hover:bg-purple-600 rounded"
-          >
-            <FaPlus />
-            <span>Ván mới</span>
-          </button>
-        )}
       </div>
     </aside>
   );
@@ -112,8 +126,9 @@ Sidebar.propTypes = {
   onSurrender: PropTypes.func.isRequired,
   onUndo: PropTypes.func.isRequired,
   onRedo: PropTypes.func.isRequired,
-  onRequestDraw: PropTypes.func.isRequired,
-  onNewGame: PropTypes.func, // Có thể không bắt buộc
+  onNewGame: PropTypes.func,
+  difficulty: PropTypes.string.isRequired,
+  onDifficultyChange: PropTypes.func.isRequired,
 };
 
 export default Sidebar;

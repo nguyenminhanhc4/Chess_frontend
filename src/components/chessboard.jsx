@@ -3,11 +3,11 @@ import { Chess } from "chess.js";
 import { useState } from "react";
 import PropTypes from "prop-types";
 
-const ChessBoard = ({ game, handleMove, orientation }) => {
+const ChessBoard = ({ game, handleMove, orientation, playerColor, transitionDuration }) => {
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [moveHints, setMoveHints] = useState({});
 
-  // Hàm dùng chung để thực hiện nước đi
+  // Hàm dùng chung để thực hiện nước đi (nếu cần)
   const makeMove = (from, to, promotion = null) => {
     const newGame = new Chess(game.fen());
     const moveConfig = { from, to };
@@ -16,7 +16,7 @@ const ChessBoard = ({ game, handleMove, orientation }) => {
     }
     const move = newGame.move(moveConfig);
     if (move) {  
-      setGame(newGame);  
+      // Nếu cần cập nhật state game, có thể gọi setGame(newGame)
       return true;
     }
     return false;
@@ -42,7 +42,8 @@ const ChessBoard = ({ game, handleMove, orientation }) => {
   const onSquareClick = (square) => {
     if (!selectedSquare) {
       const piece = game.get(square);
-      if (piece && piece.color === game.turn()) {
+      // Chỉ cho phép chọn quân của người chơi dựa trên playerColor
+      if (piece && piece.color === playerColor) {
         setSelectedSquare(square);
         const moves = game.moves({ square, verbose: true });
         const hints = {};
@@ -97,7 +98,7 @@ const ChessBoard = ({ game, handleMove, orientation }) => {
       ((piece.color === "w" && targetSquare[1] === "8") ||
        (piece.color === "b" && targetSquare[1] === "1"))
     ) {
-      // Popup phong cấp tích hợp của react-chessboard sẽ tự hoạt động
+      // Popup phong cấp tích hợp của react‑chessboard sẽ tự hoạt động
       return false;
     }
     const moved = handleMove(sourceSquare, targetSquare);
@@ -116,6 +117,7 @@ const ChessBoard = ({ game, handleMove, orientation }) => {
     setSelectedSquare(null);
     setMoveHints({});
   };
+
   // Tách riêng style cho ô vua khi bị chiếu
   const checkStyle = {};
   if (game.inCheck()) {
@@ -135,23 +137,27 @@ const ChessBoard = ({ game, handleMove, orientation }) => {
   
   return (
     <div className="flex items-center p-2">
-      {/* Bàn cờ */}
       <Chessboard 
         boardWidth={600} 
         position={game.fen()} 
         boardOrientation={orientation}
-        onPieceDrop={onPieceDrop} 
         onSquareClick={onSquareClick} 
+        onPieceDrop={onPieceDrop} 
         onPromotionPieceSelect={onPromotionPieceSelect} 
         customSquareStyles={customSquareStyles}
         onPieceDragEnd={onPieceDragEnd}
+        transitionDuration={transitionDuration}
       />
     </div>
   );
 };
+
 ChessBoard.propTypes = {
   game: PropTypes.instanceOf(Chess).isRequired,
   handleMove: PropTypes.func.isRequired,
   orientation: PropTypes.string.isRequired,
+  playerColor: PropTypes.string.isRequired,
+  transitionDuration: PropTypes.number,
 };
+
 export default ChessBoard;

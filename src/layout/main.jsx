@@ -5,34 +5,70 @@ import Nav from "./nav";
 import Sidebar from "./sidebar";
 import Footer from "./footer";
 import ChessBoard from "../components/chessboard";
-import GameResultPopup from "./GameResultPopup"; // Đảm bảo đường dẫn đúng
-import { FaSyncAlt, FaRedoAlt } from "react-icons/fa";
-import { UserAuthContext } from "../context/UserAuthContext"; // Import context để lấy thông tin user
+import GameResultPopup from "./GameResultPopup";
+import { UserAuthContext } from "../context/UserAuthContext";
 
-// Hàm clone game để trigger re-render mà vẫn giữ lịch sử
 const cloneGame = (gameInstance) => {
-  return Object.assign(Object.create(Object.getPrototypeOf(gameInstance)), gameInstance);
+  return Object.assign(
+    Object.create(Object.getPrototypeOf(gameInstance)),
+    gameInstance
+  );
 };
+
+
 
 const MainLayout = () => {
   const [game, setGame] = useState(new Chess());
   const [redoStack, setRedoStack] = useState([]);
-  const [orientation, setOrientation] = useState("white");
+  const [orientation] = useState("white");
   const [gameResult, setGameResult] = useState(null);
-  
-  // Lấy thông tin người dùng từ context
-  const { user } = useContext(UserAuthContext);
+  // State cho độ khó của AI, mặc định "medium"
+  const [difficulty, setDifficulty] = useState("medium");
 
-  // Kiểm tra game over mỗi khi game thay đổi
+  const { user } = useContext(UserAuthContext);
+  const playerColor = orientation === "white" ? "w" : "b";
+  // Hàm cập nhật vị trí lên backend với chuỗi moves
+  const updatePositionOnServer = async (moves) => {
+    try {
+      const response = await fetch("http://localhost:8080/api/engine/position", {
+        method: "POST",
+        headers: {
+          "Content-Type": "text/plain",
+        },
+        body: moves,
+      });
+      const result = await response.text();
+      console.log("Position updated:", result);
+    } catch (error) {
+      console.error("Error updating position:", error);
+    }
+  };
+
+  // Hàm lấy nước đi của máy từ backend, truyền tham số độ khó
+  const getEngineMoveFromServer = async () => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/engine/go?difficulty=${difficulty}`);
+      const result = await response.text();
+      console.log("Engine move response:", result);
+      // Giả sử kết quả trả về có dạng: "bestmove e2e4"
+      const match = result.match(/bestmove\s(\w+)/);
+      if (match && match[1]) {
+        return match[1];
+      }
+      return null;
+    } catch (error) {
+      console.error("Error getting engine move:", error);
+      return null;
+    }
+  };
+
+  // Kiểm tra game over
   useEffect(() => {
     if (game.isGameOver()) {
       let result = "";
-      // Giả sử người chơi là trắng ("w")
       const playerColor = "w";
       if (game.isCheckmate()) {
-        result = game.turn() === playerColor 
-          ? "Bạn thua (chiếu hết)!" 
-          : "Bạn đã thắng!";
+        result = game.turn() === playerColor ? "Bạn thua (chiếu hết)!" : "Bạn đã thắng!";
       } else if (game.isStalemate()) {
         result = "Stalemate!";
       } else if (game.isInsufficientMaterial()) {
@@ -46,22 +82,46 @@ const MainLayout = () => {
     }
   }, [game]);
 
-  // Lấy lượt hiện tại
-  const isWhiteTurn = game.turn() === "w";
-  const isBlackTurn = game.turn() === "b";
-
-  // Hàm thực hiện nước đi mới
-  const handleMove = (from, to, promotion = null) => {
+  // Xử lý nước đi mới, tích hợp gọi API backend
+  const handleMove = async (from, to, promotion = null) => {
+    // Xác định màu người chơi dựa trên board orientation
+    const playerColor = orientation === "white" ? "w" : "b";
+    const piece = game.get(from);
+    
+    // Nếu không có quân cờ hoặc quân cờ không thuộc về người chơi, không cho di chuyển
+    if (!piece || piece.color !== playerColor) {
+      console.warn("Bạn không được di chuyển quân cờ của đối thủ.");
+      return false;
+    }
+    
     const move = game.move({ from, to, promotion });
     if (move) {
       setGame(cloneGame(game));
       setRedoStack([]);
+  
+      // Tạo chuỗi moves từ lịch sử nước đi
+      const movesHistory = game.history({ verbose: true });
+      const movesString = movesHistory.map(m => m.from + m.to).join(" ");
+      
+      // Cập nhật vị trí lên backend với chuỗi moves
+      await updatePositionOnServer(movesString);
+  
+      // Nếu lượt hiện tại không phải của người chơi, gọi API AI
+      if (game.turn() !== playerColor) {
+        const engineMoveSan = await getEngineMoveFromServer(); // Ví dụ: "e2e4"
+        if (engineMoveSan) {
+          setTimeout(() => {
+            game.move(engineMoveSan);
+            setGame(cloneGame(game));
+          }, 800); // Delay 800ms
+        }
+      }
       return true;
     }
     return false;
   };
+  
 
-  // Undo: lùi lại nước đi cuối cùng và lưu vào redoStack
   const handleUndo = () => {
     if (game.history().length === 0) return;
     const undoneMove = game.undo();
@@ -71,7 +131,6 @@ const MainLayout = () => {
     }
   };
 
-  // Redo: tiến lại nước đi đã undo
   const handleRedo = () => {
     if (redoStack.length === 0) return;
     const moveToRedo = redoStack[redoStack.length - 1];
@@ -82,42 +141,30 @@ const MainLayout = () => {
     }
   };
 
-  // Đầu hàng: hiển thị popup thay vì alert
   const handleSurrender = () => {
     setGameResult("Bạn thua (đầu hàng)!");
   };
 
-  // Xin hòa: hiện thông báo (chưa hoạt động)
   const handleRequestDraw = () => {
     alert("Chức năng xin hòa chưa được hỗ trợ!");
   };
 
-  // Xoay bàn cờ: đồng thời xoay luôn thông tin hiển thị người chơi
-  const handleToggleOrientation = () => {
-    setOrientation((prev) => (prev === "white" ? "black" : "white"));
-  };
-
-  // Nút Ván mới: reset game
   const handleNewGame = () => {
     setGame(new Chess());
     setRedoStack([]);
     setGameResult(null);
   };
 
-  // Nút Trang chủ trong popup: chuyển hướng về trang chủ
   const handleHome = () => {
     window.location.href = "/";
   };
 
-  // Xử lý đóng popup: đặt lại gameResult thành null
   const handleClosePopup = () => {
     setGameResult(null);
   };
 
-  // Lấy lịch sử nước đi (dạng verbose) để truyền cho Sidebar
   const moveHistory = game.history({ verbose: true });
 
-  // Khối hiển thị thông tin đối thủ
   const opponentInfo = (
     <div className="flex items-center justify-center space-x-2 mb-2">
       <img
@@ -127,7 +174,7 @@ const MainLayout = () => {
       />
       <div
         className={`text-white px-2 py-1 rounded ${
-          isBlackTurn ? "bg-green-600" : "bg-gray-700"
+          game.turn() === "b" ? "bg-green-600" : "bg-gray-700"
         }`}
       >
         Bot (600)
@@ -135,9 +182,6 @@ const MainLayout = () => {
     </div>
   );
 
-  // Khối hiển thị thông tin người chơi của bạn ("your info")
-  // Nếu người dùng đã đăng nhập (tồn tại user), hiển thị tên và rating từ context,
-  // ngược lại hiển thị thông tin mặc định
   const youInfo = (
     <div className="flex items-center justify-center space-x-2 mt-2">
       <img
@@ -147,7 +191,7 @@ const MainLayout = () => {
       />
       <div
         className={`text-white px-2 py-1 rounded ${
-          isWhiteTurn ? "bg-green-600" : "bg-gray-700"
+          game.turn() === "w" ? "bg-green-600" : "bg-gray-700"
         }`}
       >
         {user ? `${user.username} (${user.rating ?? "N/A"})` : "User (600)"}
@@ -155,28 +199,15 @@ const MainLayout = () => {
     </div>
   );
 
-  // Khối chứa bàn cờ và nút điều khiển bên phải
   const boardBlock = (
     <div className="flex items-center">
-      <ChessBoard 
-        game={game} 
-        handleMove={handleMove} 
+      <ChessBoard
+        game={game}
+        handleMove={handleMove}
         orientation={orientation}
+        playerColor={playerColor}
+        transitionDuration={300}
       />
-      <div className="ml-4 flex flex-col space-y-4">
-        <button 
-          onClick={handleToggleOrientation}
-          className="p-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-        >
-          <FaSyncAlt size={24} />
-        </button>
-        <button 
-          onClick={handleNewGame}
-          className="p-2 bg-green-500 text-white rounded hover:bg-green-600"
-        >
-          <FaRedoAlt size={24} />
-        </button>
-      </div>
     </div>
   );
 
@@ -189,7 +220,6 @@ const MainLayout = () => {
           <Nav />
         </div>
 
-        {/* Khu vực trung tâm: thông tin người chơi + bàn cờ */}
         <div className="w-3/5 flex flex-col items-center justify-center">
           {orientation === "white" ? (
             <>
@@ -207,12 +237,15 @@ const MainLayout = () => {
         </div>
 
         <div className="w-1/5 h-full border-l border-gray-300">
-          <Sidebar 
+          <Sidebar
             moveHistory={moveHistory}
             onSurrender={handleSurrender}
             onUndo={handleUndo}
             onRedo={handleRedo}
             onRequestDraw={handleRequestDraw}
+            onNewGame={handleNewGame}
+            difficulty={difficulty}
+            onDifficultyChange={setDifficulty}
           />
         </div>
       </div>
