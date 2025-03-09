@@ -186,6 +186,7 @@ const MainLayout = () => {
 
   const handleSurrender = () => {
     setGameResult("Bạn thua (đầu hàng)!");
+    saveGameToServer("LOSE");
   };
 
   const handleRequestDraw = () => {
@@ -249,7 +250,6 @@ const MainLayout = () => {
         handleMove={handleMove}
         orientation={orientation}
         playerColor={playerColor}
-        transitionDuration={300}
       />
     </div>
   );

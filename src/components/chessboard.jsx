@@ -1,29 +1,14 @@
+import React, { useState, useCallback } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
-import { useState } from "react";
 import PropTypes from "prop-types";
 
 const ChessBoard = ({ game, handleMove, orientation, playerColor, transitionDuration }) => {
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [moveHints, setMoveHints] = useState({});
 
-  // Hàm dùng chung để thực hiện nước đi (nếu cần)
-  const makeMove = (from, to, promotion = null) => {
-    const newGame = new Chess(game.fen());
-    const moveConfig = { from, to };
-    if (promotion) {
-      moveConfig.promotion = promotion;
-    }
-    const move = newGame.move(moveConfig);
-    if (move) {  
-      // Nếu cần cập nhật state game, có thể gọi setGame(newGame)
-      return true;
-    }
-    return false;
-  };
-
-  // Hàm tìm vị trí của vua của bên có lượt đi hiện hành
-  const getKingSquare = (gameInstance) => {
+  // Tìm vị trí của vua của bên có lượt đi hiện hành
+  const getKingSquare = useCallback((gameInstance) => {
     const files = "abcdefgh";
     const ranks = "12345678";
     for (let i = 0; i < files.length; i++) {
@@ -36,10 +21,10 @@ const ChessBoard = ({ game, handleMove, orientation, playerColor, transitionDura
       }
     }
     return null;
-  };
+  }, []);
 
-  // Xử lý khi click vào ô (click-to-move)
-  const onSquareClick = (square) => {
+  // Xử lý click vào ô (click-to-move)
+  const onSquareClick = useCallback((square) => {
     if (!selectedSquare) {
       const piece = game.get(square);
       // Chỉ cho phép chọn quân của người chơi dựa trên playerColor
@@ -87,10 +72,10 @@ const ChessBoard = ({ game, handleMove, orientation, playerColor, transitionDura
       setSelectedSquare(null);
       setMoveHints({});
     }
-  };
+  }, [selectedSquare, game, playerColor, moveHints, handleMove]);
 
-  // Xử lý drag & drop (vẫn giữ chức năng phong cấp của drag & drop)
-  const onPieceDrop = (sourceSquare, targetSquare) => {
+  // Xử lý drag & drop (drag-to-move)
+  const onPieceDrop = useCallback((sourceSquare, targetSquare) => {
     const piece = game.get(sourceSquare);
     if (
       piece &&
@@ -104,19 +89,19 @@ const ChessBoard = ({ game, handleMove, orientation, playerColor, transitionDura
     const moved = handleMove(sourceSquare, targetSquare);
     setMoveHints({});
     return moved;
-  };
+  }, [game, handleMove]);
 
   // Xử lý khi người dùng chọn quân phong cấp từ popup tích hợp của react‑chessboard
-  const onPromotionPieceSelect = (piece, from, to) => {
+  const onPromotionPieceSelect = useCallback((piece, from, to) => {
     const promotionPiece = piece.charAt(piece.length - 1).toLowerCase();
     return handleMove(from, to, promotionPiece);
-  };
+  }, [handleMove]);
 
-  // Khi kết thúc kéo quân, xóa move hint
-  const onPieceDragEnd = () => {
+  // Khi kết thúc kéo quân, xóa move hints
+  const onPieceDragEnd = useCallback(() => {
     setSelectedSquare(null);
     setMoveHints({});
-  };
+  }, []);
 
   // Tách riêng style cho ô vua khi bị chiếu
   const checkStyle = {};
@@ -147,6 +132,7 @@ const ChessBoard = ({ game, handleMove, orientation, playerColor, transitionDura
         customSquareStyles={customSquareStyles}
         onPieceDragEnd={onPieceDragEnd}
         transitionDuration={transitionDuration}
+        arePiecesDraggable={true}
       />
     </div>
   );
@@ -160,4 +146,4 @@ ChessBoard.propTypes = {
   transitionDuration: PropTypes.number,
 };
 
-export default ChessBoard;
+export default React.memo(ChessBoard);
