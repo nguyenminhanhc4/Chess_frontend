@@ -168,7 +168,7 @@ const MainLayout = () => {
   const opponentInfo = (
     <div className="flex items-center justify-center space-x-2 mb-2">
       <img
-        src="./../public/vite.svg"
+        src="../../public/robo_icon.jpg"
         alt="Opponent"
         className="w-8 h-8 rounded-full"
       />
@@ -185,7 +185,7 @@ const MainLayout = () => {
   const youInfo = (
     <div className="flex items-center justify-center space-x-2 mt-2">
       <img
-        src={user && user.avatar ? user.avatar : "./../public/vite.svg"}
+        src={user && user.avatar ? user.avatar : "../../public/user_default.jpg"}
         alt="You"
         className="w-8 h-8 rounded-full"
       />

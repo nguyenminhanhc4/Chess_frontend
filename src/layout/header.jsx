@@ -30,7 +30,7 @@ const Header = () => {
         {user ? (
           <div className="flex items-center space-x-3">
             <img
-              src={user.profilePicture || "/vite.svg"}
+              src={user.profilePicture || "/user_default.jpg"}  // Đảm bảo file ảnh nằm trong thư mục public
               alt="User Avatar"
               className="w-10 h-10 rounded-full border-2 border-blue-300"
             />

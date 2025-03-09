@@ -28,7 +28,7 @@ const Nav = () => {
         {user && (
           <div className="flex items-center space-x-2 mb-8">
             <img
-              src={user.profilePicture || "/vite.svg"}
+              src={user.profilePicture || "/user_default.jpg"}  // Đảm bảo file ảnh nằm trong public
               alt="Avatar"
               className="w-10 h-10 rounded-full border-2 border-blue-300"
             />
