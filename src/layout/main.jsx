@@ -7,6 +7,7 @@ import Footer from "./footer";
 import ChessBoard from "../components/chessboard";
 import GameResultPopup from "./GameResultPopup";
 import { UserAuthContext } from "../context/UserAuthContext";
+import axios from "axios";
 
 const cloneGame = (gameInstance) => {
   return Object.assign(
@@ -30,28 +31,30 @@ const MainLayout = () => {
   // Hàm cập nhật vị trí lên backend với chuỗi moves
   const updatePositionOnServer = async (moves) => {
     try {
-      const response = await fetch("http://localhost:8080/api/engine/position", {
-        method: "POST",
-        headers: {
-          "Content-Type": "text/plain",
-        },
-        body: moves,
-      });
-      const result = await response.text();
-      console.log("Position updated:", result);
+      const response = await axios.post(
+        "http://localhost:8080/api/engine/position",
+        moves, // Dữ liệu moves gửi trực tiếp trong body
+        {
+          headers: {
+            "Content-Type": "text/plain",
+          },
+        }
+      );
+      console.log("Position updated:", response.data);
     } catch (error) {
       console.error("Error updating position:", error);
     }
   };
+  
 
   // Hàm lấy nước đi của máy từ backend, truyền tham số độ khó
   const getEngineMoveFromServer = async () => {
     try {
-      const response = await fetch(`http://localhost:8080/api/engine/go?difficulty=${difficulty}`);
-      const result = await response.text();
-      console.log("Engine move response:", result);
+      const response = await axios.get(`http://localhost:8080/api/engine/go?difficulty=${difficulty}`);
+      console.log("Engine move response:", response.data);
+  
       // Giả sử kết quả trả về có dạng: "bestmove e2e4"
-      const match = result.match(/bestmove\s(\w+)/);
+      const match = response.data.match(/bestmove\s(\w+)/);
       if (match && match[1]) {
         return match[1];
       }
@@ -61,6 +64,7 @@ const MainLayout = () => {
       return null;
     }
   };
+  
 
   // Kiểm tra game over
   useEffect(() => {
@@ -68,32 +72,25 @@ const MainLayout = () => {
       let result = "";
       const playerColor = "w";
       if (game.isCheckmate()) {
-        result = game.turn() === playerColor ? "Bạn thua (chiếu hết)!" : "Bạn đã thắng!";
+        result = game.turn() === playerColor ? "LOSE" : "WIN";
       } else if (game.isStalemate()) {
-        result = "Stalemate!";
+        result = "DRAW";
       } else if (game.isInsufficientMaterial()) {
-        result = "Hòa (không đủ quân)!";
+        result = "DRAW";
       } else if (game.isThreefoldRepetition()) {
-        result = "Hòa (lặp lại ba lần)!";
+        result = "DRAW";
       } else {
-        result = "Hòa!";
+        result = "DRAW";
       }
+  
       setGameResult(result);
+      saveGameToServer(result);
     }
   }, [game]);
+  
 
   // Xử lý nước đi mới, tích hợp gọi API backend
   const handleMove = async (from, to, promotion = null) => {
-    // Xác định màu người chơi dựa trên board orientation
-    const playerColor = orientation === "white" ? "w" : "b";
-    const piece = game.get(from);
-    
-    // Nếu không có quân cờ hoặc quân cờ không thuộc về người chơi, không cho di chuyển
-    if (!piece || piece.color !== playerColor) {
-      console.warn("Bạn không được di chuyển quân cờ của đối thủ.");
-      return false;
-    }
-    
     const move = game.move({ from, to, promotion });
     if (move) {
       setGame(cloneGame(game));
@@ -106,21 +103,67 @@ const MainLayout = () => {
       // Cập nhật vị trí lên backend với chuỗi moves
       await updatePositionOnServer(movesString);
   
-      // Nếu lượt hiện tại không phải của người chơi, gọi API AI
+      // Xác định màu người chơi dựa trên board orientation
+      const playerColor = orientation === "white" ? "w" : "b";
       if (game.turn() !== playerColor) {
-        const engineMoveSan = await getEngineMoveFromServer(); // Ví dụ: "e2e4"
+        let engineMoveSan = await getEngineMoveFromServer(); // Ví dụ: "e2e4"
+        
         if (engineMoveSan) {
+          // Áp dụng yếu tố ngẫu nhiên tùy theo độ khó
+          if (difficulty === "easy" && Math.random() < 0.7) {
+            const legalMoves = game.moves({ verbose: true });
+            if (legalMoves.length > 0) {
+              const randomMove = legalMoves[Math.floor(Math.random() * legalMoves.length)];
+              engineMoveSan = randomMove.from + randomMove.to;
+              console.log("Easy mode random move:", engineMoveSan);
+            }
+          } else if (difficulty === "medium" && Math.random() < 0.5) {
+            const legalMoves = game.moves({ verbose: true });
+            if (legalMoves.length > 0) {
+              const randomMove = legalMoves[Math.floor(Math.random() * legalMoves.length)];
+              engineMoveSan = randomMove.from + randomMove.to;
+              console.log("Medium mode random move:", engineMoveSan);
+            }
+          }
+        }
+  
+        if (engineMoveSan) {
+          // Thêm delay để tạo hiệu ứng "suy nghĩ" cho AI
           setTimeout(() => {
             game.move(engineMoveSan);
             setGame(cloneGame(game));
-          }, 800); // Delay 800ms
+          }, 800);
         }
+        return true;
       }
       return true;
     }
     return false;
   };
   
+  
+  const saveGameToServer = async (result) => {
+    if (!user) {
+      console.log("Người chơi chưa đăng nhập, không lưu ván đấu.");
+      return;
+    }
+  
+    const gameData = {
+      playerUsername: user.username,
+      opponent: "Bot",
+      opponentType: "BOT",
+      moves: game.history({ verbose: false }).join(" "), // Lấy danh sách nước đi
+      finalFen: game.fen(),
+      result: result.toUpperCase(), // WIN, LOSE hoặc DRAW
+    };
+  
+    try {
+      const response = await axios.post("http://localhost:8080/api/game/save", gameData);
+      console.log("Ván đấu đã được lưu:", response.data);
+    } catch (error) {
+      console.error("Lỗi khi lưu ván đấu:", error);
+    }
+  };
 
   const handleUndo = () => {
     if (game.history().length === 0) return;
