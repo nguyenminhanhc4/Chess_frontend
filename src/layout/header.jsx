@@ -2,13 +2,16 @@ import { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { UserAuthContext } from '../context/UserAuthContext';
 import { FaSignOutAlt } from 'react-icons/fa';
+import { getSessionId } from '../utils/session';
 
 const Header = () => {
   const { user, updateUserFromToken } = useContext(UserAuthContext);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    updateUserFromToken(); // Cập nhật context sau khi đăng xuất
+  const handleLogout = () => { 
+    const sessionId = getSessionId(); 
+    const tokenKey = "authToken_" + sessionId; 
+    localStorage.removeItem(tokenKey); 
+    updateUserFromToken(); // Cập nhật context sau khi đăng xuất };
   };
 
   return (

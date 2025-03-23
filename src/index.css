@@ -6,6 +6,21 @@ body {
   background-color: #302e2b; /* Màu vàng nhạt */
 }
 
+/* Dành cho Chrome, Safari, Opera */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Dành cho IE, Edge */
+* {
+  -ms-overflow-style: none;
+}
+
+/* Dành cho Firefox */
+* {
+  scrollbar-width: none;
+}
+
 /* Ẩn thanh scroll cho Firefox */
 .custom-scrollbar {
   scrollbar-width: none; /* Firefox */

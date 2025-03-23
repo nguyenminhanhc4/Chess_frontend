@@ -1,6 +1,8 @@
 import { createContext, useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
+import { getSessionId } from "../utils/session";
 
 export const UserAuthContext = createContext();
 
@@ -8,13 +10,16 @@ export const UserAuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
   const updateUserFromToken = async () => {
-    const token = localStorage.getItem("token");
+    const sessionId = getSessionId();
+    const tokenKey = "authToken_" + sessionId;
+    const token = localStorage.getItem(tokenKey);
+    console.log("Token lấy từ localStorage:", token);
     if (token) {
       try {
-        // Decode token để lấy user id (giả sử id được lưu trong "sub")
+        // Gọi trực tiếp jwt_decode(token) mà không cần .default
         const decoded = jwtDecode(token);
+        console.log("Payload sau khi decode:", decoded);
         const userId = decoded.sub;
-        // Gọi API để lấy thông tin user đầy đủ, bao gồm rating, avatar, username,...
         const response = await axios.get(`http://localhost:8080/api/users/${userId}`);
         console.log("Thông tin user từ API:", response.data);
         setUser(response.data);
@@ -30,6 +35,9 @@ export const UserAuthProvider = ({ children }) => {
   useEffect(() => {
     updateUserFromToken();
   }, []);
+  UserAuthProvider.propTypes = {
+    children: PropTypes.node.isRequired,
+  };
 
   return (
     <UserAuthContext.Provider value={{ user, updateUserFromToken }}>

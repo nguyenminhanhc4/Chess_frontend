@@ -3,6 +3,8 @@ import axios from 'axios';
 import { GiChessKing } from 'react-icons/gi';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import { UserAuthContext } from '../context/UserAuthContext'; // Thêm import context
+import { getSessionId } from '../utils/session';
+
 
 const Login = () => {
   const navigate = useNavigate(); // Khởi tạo navigate
@@ -31,20 +33,25 @@ const Login = () => {
       });
       console.log("Đăng nhập thành công:", response.data);
       
-      // Lưu token vào localStorage
-      localStorage.setItem('token', response.data.token);
+      // Lấy sessionId và tạo key lưu token dựa trên sessionId
+      const sessionId = getSessionId();
+      const tokenKey = "authToken_" + sessionId;
       
-      // Cập nhật context sau khi lưu token để header tự động re-render
+      // Lưu token vào localStorage với key có chứa sessionId
+      localStorage.setItem(tokenKey, response.data.token);
+      
+      // Cập nhật context để lấy thông tin user
       updateUserFromToken();
-
-      // Chuyển hướng đến trang Main (hoặc trang chủ)
-      navigate('/main');
+  
+      // Chuyển hướng đến trang chính
+      navigate('/');
       
     } catch (error) {
       console.error("Lỗi đăng nhập:", error.response ? error.response.data : error.message);
       alert("Đăng nhập thất bại!");
     }
   };
+  
 
   // Xử lý submit cho form đăng ký
   const handleRegisterSubmit = async (e) => {

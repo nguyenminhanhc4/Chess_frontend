@@ -250,6 +250,7 @@ const MainLayout = () => {
         handleMove={handleMove}
         orientation={orientation}
         playerColor={playerColor}
+        transitionDuration={500}
       />
     </div>
   );

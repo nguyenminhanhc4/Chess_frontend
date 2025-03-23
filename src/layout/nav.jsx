@@ -54,7 +54,7 @@ const Nav = () => {
           <li className="mt-6 text-gray-400 uppercase text-xs tracking-wider">Phân tích & Lịch sử</li>
           <li className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-600 cursor-pointer">
             <FaChartBar />
-            <Link to="/analysis" className="text-white">Lưu trữ & phân tích ván đấu</Link>
+            <Link to="/history" className="text-white">Lưu trữ & phân tích ván đấu</Link>
           </li>
 
           <li className="mt-6 text-gray-400 uppercase text-xs tracking-wider">Khác</li>

@@ -24,7 +24,9 @@ const ChessBoard = ({ game, handleMove, orientation, playerColor, transitionDura
   }, []);
 
   // Xử lý click vào ô (click-to-move)
-  const onSquareClick = useCallback((square) => {
+  // Xử lý click vào ô (click-to-move)
+const onSquareClick = useCallback(
+  (square) => {
     if (!selectedSquare) {
       const piece = game.get(square);
       // Chỉ cho phép chọn quân của người chơi dựa trên playerColor
@@ -32,6 +34,8 @@ const ChessBoard = ({ game, handleMove, orientation, playerColor, transitionDura
         setSelectedSquare(square);
         const moves = game.moves({ square, verbose: true });
         const hints = {};
+        // Chọn màu gợi ý khác nhau cho quân trắng và quân đen
+        const moveHintColor = playerColor === "b" ? "white" : "gray";
         moves.forEach((move) => {
           if (move.flags.includes("c") || move.flags.includes("e")) {
             hints[move.to] = {
@@ -42,14 +46,14 @@ const ChessBoard = ({ game, handleMove, orientation, playerColor, transitionDura
             };
           } else {
             hints[move.to] = {
-              backgroundImage:
-                "radial-gradient(circle, gray 20%, transparent 20%)",
+              backgroundImage: `radial-gradient(circle, ${moveHintColor} 20%, transparent 20%)`,
               backgroundPosition: "center",
               backgroundSize: "60px 60px",
               backgroundRepeat: "no-repeat",
             };
           }
         });
+        // Ô được chọn sẽ có border màu xanh dương
         hints[square] = { border: "3px solid blue" };
         setMoveHints(hints);
       }
@@ -57,11 +61,12 @@ const ChessBoard = ({ game, handleMove, orientation, playerColor, transitionDura
       const fromSquare = selectedSquare;
       const toSquare = square;
       const piece = game.get(fromSquare);
+      // Kiểm tra đặc biệt cho quân tốt phong cấp
       if (
         piece &&
         piece.type === "p" &&
         ((piece.color === "w" && toSquare[1] === "8") ||
-         (piece.color === "b" && toSquare[1] === "1"))
+          (piece.color === "b" && toSquare[1] === "1"))
       ) {
         onPieceDrop(fromSquare, toSquare);
       } else {
@@ -72,7 +77,10 @@ const ChessBoard = ({ game, handleMove, orientation, playerColor, transitionDura
       setSelectedSquare(null);
       setMoveHints({});
     }
-  }, [selectedSquare, game, playerColor, moveHints, handleMove]);
+  },
+  [selectedSquare, game, playerColor, moveHints, handleMove]
+);
+
 
   // Xử lý drag & drop (drag-to-move)
   const onPieceDrop = useCallback((sourceSquare, targetSquare) => {
