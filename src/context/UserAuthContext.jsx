@@ -20,7 +20,9 @@ export const UserAuthProvider = ({ children }) => {
         const decoded = jwtDecode(token);
         console.log("Payload sau khi decode:", decoded);
         const userId = decoded.sub;
-        const response = await axios.get(`http://localhost:8080/api/users/${userId}`);
+        const response = await axios.get(
+          `http://localhost:8080/api/users/${userId}`
+        );
         console.log("Thông tin user từ API:", response.data);
         setUser(response.data);
       } catch (error) {

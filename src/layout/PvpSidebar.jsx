@@ -6,7 +6,7 @@ import {
   FaHandshake,
   FaCheck,
   FaTimes,
-  FaSpinner, // Import icon spinner
+  FaSpinner,
 } from "react-icons/fa";
 import axios from "axios";
 import { useState, useRef, useEffect, useContext } from "react";
@@ -16,54 +16,26 @@ import { toast } from "react-toastify";
 const PvpSidebar = ({
   moveHistory,
   onSurrender,
+  onUndo,
+  onRedo,
   onRequestDraw,
+  onNewGame,
   onSendChat,
   onSendDrawResponse,
   chatMessages,
   matchInfo,
   currentUser,
+  gameMode,
+  setGameMode,
 }) => {
   const { user } = useContext(UserAuthContext);
-  // Thêm state để theo dõi trạng thái loading của nút Tìm trận
   const [loadingMatch, setLoadingMatch] = useState(false);
-
-  // Nhóm các nước đi thành cặp
-  const movePairs = [];
-  for (let i = 0; i < moveHistory.length; i++) {
-    if (moveHistory[i].color === "w") {
-      const whiteMove = moveHistory[i].san;
-      let blackMove = "";
-      if (i + 1 < moveHistory.length && moveHistory[i + 1].color === "b") {
-        blackMove = moveHistory[i + 1].san;
-        i++;
-      }
-      movePairs.push({
-        moveNumber: movePairs.length + 1,
-        white: whiteMove,
-        black: blackMove,
-      });
-    } else {
-      movePairs.push({
-        moveNumber: movePairs.length + 1,
-        white: "",
-        black: moveHistory[i].san,
-      });
-    }
-  }
-
-  // State cho chat input
   const [chatInput, setChatInput] = useState("");
-  // Tạo ref cho khung chat
   const chatContainerRef = useRef(null);
 
-  const handleSendChatLocal = () => {
-    if (chatInput.trim() !== "" && onSendChat) {
-      onSendChat(chatInput.trim());
-      setChatInput("");
-    }
-  };
+  // Thêm state để lưu giá trị thời gian được chọn (VD "30+0", "1+1", v.v.)
+  const [selectedTimeValue, setSelectedTimeValue] = useState("");
 
-  // Mỗi khi chatMessages thay đổi, tự động cuộn xuống cuối khung chat
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop =
@@ -71,207 +43,271 @@ const PvpSidebar = ({
     }
   }, [chatMessages]);
 
-  return (
-    <aside className="min-h-screen bg-gray-800 text-white p-4 w-full flex flex-col">
-      {/* Tiêu đề Biên bản */}
-      <div className="mb-4">
-        <h2 className="text-xl font-bold text-center">Biên bản</h2>
-        <hr className="border-gray-600 mt-2" />
-      </div>
+  // Mảng nhóm thời gian (theo ảnh)
+  const timeControlGroups = [
+    {
+      label: "Siêu Chớp",
+      items: [
+        { label: "1 phút", value: "1+0" },
+        { label: "1 | 1", value: "1+1" },
+        { label: "2 | 1", value: "2+1" },
+      ],
+    },
+    {
+      label: "Chớp",
+      items: [
+        { label: "3 phút", value: "3+0" },
+        { label: "3 | 2", value: "3+2" },
+        { label: "5 phút", value: "5+0" },
+      ],
+    },
+    {
+      label: "Cờ Chớp",
+      items: [
+        { label: "10 phút", value: "10+0" },
+        { label: "15 | 10", value: "15+10" },
+        { label: "30 phút", value: "30+0" },
+      ],
+    },
+    {
+      label: "Hàng Ngày",
+      items: [
+        { label: "1 ngày", value: "1d" },
+        { label: "3 ngày", value: "3d" },
+        { label: "7 ngày", value: "7d" },
+      ],
+    },
+  ];
 
-      {/* Lịch sử nước đi */}
-      <div className="flex-1 overflow-auto max-h-[450px] mb-4 custom-scrollbar">
-        {movePairs.length > 0 ? (
-          <table className="w-full text-sm">
-            <thead>
-              <tr>
-                <th className="text-left">#</th>
-                <th className="text-left">Trắng</th>
-                <th className="text-left">Đen</th>
-              </tr>
-            </thead>
-            <tbody>
-              {movePairs.map((pair) => (
-                <tr key={pair.moveNumber} className="hover:bg-gray-700">
-                  <td className="p-1">{pair.moveNumber}.</td>
-                  <td className="p-1">{pair.white}</td>
-                  <td className="p-1">{pair.black}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p className="text-gray-500 text-center">Chưa có nước đi nào.</p>
-        )}
-      </div>
+  // Hàm xử lý khi bấm nút "Chơi" (hoặc "Tìm trận"/"Hủy tìm trận")
+  const handleFindMatch = async () => {
+    if (!user) {
+      toast.info("Bạn cần đăng nhập để tìm trận");
+      return;
+    }
+    if (!selectedTimeValue) {
+      toast.info("Hãy chọn một mốc thời gian");
+      return;
+    }
 
-      {/* Các nút điều khiển */}
-      <div className="flex flex-col space-y-2 mb-4">
-        <button
-          onClick={() => {
-            if (!matchInfo) {
-              toast.info("Bạn chưa có trận đấu, không thể đầu hàng.");
-              return;
-            }
-            onSurrender();
-          }}
-          className="w-full flex items-center justify-center space-x-2 p-2 bg-red-500 hover:bg-red-600 rounded">
-          <FaHandPaper />
-          <span>Đầu hàng</span>
-        </button>
-        <button
-          onClick={() => {
-            if (!matchInfo) {
-              toast.info("Bạn chưa có trận đấu, không thể xin hòa.");
-              return;
-            }
-            onRequestDraw();
-          }}
-          className="w-full flex items-center justify-center space-x-2 p-2 bg-yellow-500 hover:bg-yellow-600 rounded">
-          <FaHandshake />
-          <span>Xin hòa</span>
-        </button>
+    if (loadingMatch) {
+      // Hủy tìm trận
+      try {
+        await axios.post(
+          "http://localhost:8080/api/matchmaking/cancel",
+          { ...user, timeControl: selectedTimeValue },
+          { headers: { "Content-Type": "application/json" } }
+        );
+        console.log("Cancelled matchmaking");
+      } catch (error) {
+        console.error("Error cancelling matchmaking:", error);
+      }
+      setLoadingMatch(false);
+    } else {
+      // Bắt đầu tìm trận
+      setLoadingMatch(true);
+      try {
+        const response = await axios.post(
+          "http://localhost:8080/api/matchmaking/join",
+          { ...user, timeControl: selectedTimeValue },
+          { headers: { "Content-Type": "application/json" } }
+        );
+        console.log("Joined matchmaking:", response.data);
+      } catch (error) {
+        console.error("Error joining matchmaking:", error);
+        setLoadingMatch(false);
+      }
+    }
+  };
 
-        <button
-          onClick={async () => {
-            if (loadingMatch) {
-              // Nếu đang trong trạng thái tìm trận, nhấn nút sẽ hủy tìm trận
-              try {
-                await axios.post(
-                  "http://localhost:8080/api/matchmaking/cancel",
-                  user,
-                  { headers: { "Content-Type": "application/json" } }
-                );
-                console.log("Cancelled matchmaking");
-              } catch (error) {
-                console.error("Error cancelling matchmaking:", error);
-              }
-              setLoadingMatch(false);
-            } else {
-              // Nếu chưa trong trạng thái loading và chưa có matchInfo, gọi API join
-              if (!matchInfo) {
-                setLoadingMatch(true);
-                try {
-                  const response = await axios.post(
-                    "http://localhost:8080/api/matchmaking/join",
-                    user,
-                    { headers: { "Content-Type": "application/json" } }
-                  );
-                  console.log("Joined matchmaking:", response.data);
-                  // Không tắt loading tại đây vì trạng thái sẽ tự cập nhật khi matchInfo thay đổi.
-                } catch (error) {
-                  console.error("Error joining matchmaking:", error);
-                  setLoadingMatch(false);
-                }
-              }
-            }
-          }}
-          // Chỉ vô hiệu hóa nút khi đã có trận (matchInfo)
-          disabled={!!matchInfo}
-          className={`w-full flex items-center justify-center space-x-2 p-2 rounded transition-colors duration-300 ${
-            matchInfo
-              ? "bg-gray-500 cursor-not-allowed"
-              : loadingMatch
-              ? "bg-blue-200"
-              : "bg-blue-500 hover:bg-blue-600"
-          }`}>
-          {loadingMatch ? (
-            <div className="flex items-center space-x-2">
-              <FaSpinner className="animate-spin text-blue-700" size={20} />
-              <span className="text-blue-700">Hủy tìm trận</span>
+  // Giao diện khi **chưa** có trận (Pre-Match)
+  const renderPreMatchView = () => {
+    return (
+      <div className="p-4 text-white">
+        <h2 className="text-2xl font-bold mb-4 text-center">Chọn thời gian</h2>
+
+        {/* Liệt kê các nhóm thời gian */}
+        <div className="flex flex-col space-y-4">
+          {timeControlGroups.map((group) => (
+            <div key={group.label}>
+              <div className="font-bold text-lg mb-2">{group.label}</div>
+              <div className="grid grid-cols-3 gap-2">
+                {group.items.map((item) => (
+                  <button
+                    key={item.value}
+                    onClick={() => setSelectedTimeValue(item.value)}
+                    className={`p-2 rounded text-sm transition-colors 
+                      ${
+                        selectedTimeValue === item.value
+                          ? "bg-green-600"
+                          : "bg-gray-700 hover:bg-gray-600"
+                      }`}>
+                    {item.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          ) : (
+          ))}
+        </div>
+
+        {/* "Kiểm soát thời gian nhiều hơn" (chỉ là ví dụ, bạn tự gắn logic) */}
+        <div
+          className="mt-4 text-center text-sm text-gray-300 hover:underline cursor-pointer"
+          onClick={() =>
+            console.log("Mở popup tùy chọn thời gian chi tiết...")
+          }>
+          Kiểm soát thời gian nhiều hơn
+        </div>
+
+        {/* Nút Tìm trận hoặc Hủy tìm trận */}
+        <button
+          onClick={handleFindMatch}
+          disabled={!!matchInfo} // Nếu đã có matchInfo rồi thì vô hiệu
+          className={`mt-4 w-full py-2 rounded font-bold flex items-center justify-center space-x-2
+            ${
+              matchInfo
+                ? "bg-gray-500 cursor-not-allowed"
+                : loadingMatch
+                ? "bg-blue-500"
+                : "bg-green-600 hover:bg-green-500"
+            }`}>
+          {loadingMatch ? (
             <>
-              <FaCommentAlt />
-              <span>Tìm trận</span>
+              <FaSpinner className="animate-spin" />
+              <span>Hủy tìm trận</span>
             </>
+          ) : (
+            <span>Chơi</span>
           )}
         </button>
       </div>
+    );
+  };
 
-      {/* Phần Chat */}
-      <div className="mt-4">
-        <h3 className="text-lg font-semibold mb-2 flex items-center">
-          <FaCommentAlt className="mr-2" /> Chat
-        </h3>
-        <div
-          ref={chatContainerRef}
-          className="flex-1 overflow-auto mb-2 p-2 bg-gray-700 rounded h-40">
-          {chatMessages && chatMessages.length > 0 ? (
-            chatMessages.map((msg, index) => {
-              console.log(
-                "Message type:",
-                msg.msgType,
-                "Message sender:",
-                msg.sender
-              );
-              if (msg.msgType === "draw_request") {
-                return (
-                  <div
-                    key={index}
-                    className="mb-1 border border-yellow-500 p-1 rounded">
-                    <span className="font-bold">{msg.sender} xin hòa. </span>
-                    {msg.sender.toLowerCase().trim() !==
-                    currentUser.toLowerCase().trim() ? (
-                      <span>
-                        <button
-                          onClick={() => onSendDrawResponse(true)}
-                          className="mr-2 text-green-500">
-                          <FaCheck />
-                        </button>
-                        <button
-                          onClick={() => onSendDrawResponse(false)}
-                          className="text-red-500">
-                          <FaTimes />
-                        </button>
-                      </span>
-                    ) : (
-                      <span>(Đã gửi yêu cầu hòa)</span>
-                    )}
-                  </div>
-                );
-              } else if (msg.msgType === "draw_response") {
-                return (
-                  <div key={index} className="mb-1">
-                    <span className="font-bold">{msg.sender}:</span>{" "}
-                    <span>{msg.text}</span>
-                  </div>
-                );
-              } else {
-                return (
-                  <div key={index} className="mb-1">
-                    <span className="font-bold">{msg.sender}:</span>{" "}
-                    <span>{msg.text}</span>
-                  </div>
-                );
-              }
-            })
+  // Giao diện khi **đã** có trận (In-Match)
+  const renderInMatchView = () => {
+    // Nhóm các nước đi thành cặp (moveNumber, white, black)
+    const movePairs = [];
+    for (let i = 0; i < moveHistory.length; i += 2) {
+      const whiteMove = moveHistory[i]?.san || "";
+      const blackMove = moveHistory[i + 1]?.san || "";
+      movePairs.push({
+        moveNumber: Math.floor(i / 2) + 1,
+        white: whiteMove,
+        black: blackMove,
+      });
+    }
+
+    return (
+      <div className="p-4 text-white h-full flex flex-col">
+        {/* Biên bản */}
+        <div className="mb-4">
+          <h2 className="text-xl font-bold text-center">Biên bản</h2>
+          <hr className="border-gray-600 mt-2" />
+        </div>
+
+        <div className="flex-1 overflow-auto max-h-[250px] mb-4 custom-scrollbar">
+          {movePairs.length > 0 ? (
+            <table className="w-full text-sm">
+              <thead>
+                <tr>
+                  <th className="text-left">#</th>
+                  <th className="text-left">Trắng</th>
+                  <th className="text-left">Đen</th>
+                </tr>
+              </thead>
+              <tbody>
+                {movePairs.map((pair) => (
+                  <tr key={pair.moveNumber} className="hover:bg-gray-700">
+                    <td className="p-1">{pair.moveNumber}.</td>
+                    <td className="p-1">{pair.white}</td>
+                    <td className="p-1">{pair.black}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           ) : (
-            <p className="text-gray-400">Chưa có tin nhắn.</p>
+            <p className="text-gray-500 text-center">Chưa có nước đi nào.</p>
           )}
         </div>
-        {!matchInfo && (
-          <p className="text-gray-400 mb-2">
-            Chat chỉ hoạt động sau khi ghép đấu.
-          </p>
-        )}
-        <div className="flex">
-          <input
-            type="text"
-            placeholder="Nhập tin nhắn..."
-            className="flex-1 p-2 rounded-l bg-gray-600 text-white"
-            value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
-            disabled={!matchInfo}
-          />
+
+        {/* Các nút Đầu hàng, Xin hòa (nếu cần) */}
+        <div className="flex flex-col space-y-2 mb-4">
           <button
-            onClick={handleSendChatLocal}
-            className="p-2 bg-blue-500 rounded-r hover:bg-blue-600"
-            disabled={!matchInfo}>
-            Gửi
+            onClick={() => {
+              if (!matchInfo) {
+                toast.info("Bạn chưa có trận đấu, không thể đầu hàng.");
+                return;
+              }
+              onSurrender();
+            }}
+            className="w-full flex items-center justify-center space-x-2 p-2 bg-red-500 hover:bg-red-600 rounded">
+            <FaHandPaper />
+            <span>Đầu hàng</span>
+          </button>
+          <button
+            onClick={() => {
+              if (!matchInfo) {
+                toast.info("Bạn chưa có trận đấu, không thể xin hòa.");
+                return;
+              }
+              onRequestDraw();
+            }}
+            className="w-full flex items-center justify-center space-x-2 p-2 bg-yellow-500 hover:bg-yellow-600 rounded">
+            <FaHandshake />
+            <span>Xin hòa</span>
           </button>
         </div>
+
+        {/* Khu vực Chat */}
+        <div className="mt-4">
+          <h3 className="text-lg font-semibold mb-2 flex items-center">
+            <FaCommentAlt className="mr-2" /> Chat
+          </h3>
+          <div
+            ref={chatContainerRef}
+            className="flex-1 overflow-auto mb-2 p-2 bg-gray-700 rounded h-40">
+            {chatMessages && chatMessages.length > 0 ? (
+              chatMessages.map((msg, index) => (
+                <div key={index} className="mb-1">
+                  <span className="font-bold">{msg.sender}:</span>{" "}
+                  <span>{msg.text}</span>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-400">Chưa có tin nhắn.</p>
+            )}
+          </div>
+          <div className="flex">
+            <input
+              type="text"
+              placeholder="Nhập tin nhắn..."
+              className="flex-1 p-2 rounded-l bg-gray-600 text-white"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              disabled={!matchInfo}
+            />
+            <button
+              onClick={() => {
+                if (chatInput.trim() !== "" && onSendChat) {
+                  onSendChat(chatInput.trim());
+                  setChatInput("");
+                }
+              }}
+              className="p-2 bg-blue-500 rounded-r hover:bg-blue-600"
+              disabled={!matchInfo}>
+              Gửi
+            </button>
+          </div>
+        </div>
       </div>
+    );
+  };
+
+  // Quyết định hiển thị: nếu có matchInfo => InMatch, nếu không => PreMatch
+  return (
+    <aside className="min-h-screen bg-gray-800 text-white p-4 w-full flex flex-col">
+      {matchInfo ? renderInMatchView() : renderPreMatchView()}
     </aside>
   );
 };
@@ -288,6 +324,8 @@ PvpSidebar.propTypes = {
   chatMessages: PropTypes.array,
   matchInfo: PropTypes.object,
   currentUser: PropTypes.string.isRequired,
+  gameMode: PropTypes.string,
+  setGameMode: PropTypes.func,
 };
 
 export default PvpSidebar;

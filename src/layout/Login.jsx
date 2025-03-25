@@ -1,10 +1,9 @@
-import { useState, useContext } from 'react';
-import axios from 'axios';
-import { GiChessKing } from 'react-icons/gi';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
-import { UserAuthContext } from '../context/UserAuthContext'; // Thêm import context
-import { getSessionId } from '../utils/session';
-
+import { useState, useContext } from "react";
+import axios from "axios";
+import { GiChessKing } from "react-icons/gi";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { UserAuthContext } from "../context/UserAuthContext"; // Thêm import context
+import { getSessionId } from "../utils/session";
 
 const Login = () => {
   const navigate = useNavigate(); // Khởi tạo navigate
@@ -14,44 +13,48 @@ const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
 
   // State cho form đăng nhập
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
 
   // State cho form đăng ký
-  const [registerUsername, setRegisterUsername] = useState('');
-  const [registerEmail, setRegisterEmail] = useState('');
-  const [registerPassword, setRegisterPassword] = useState('');
-  const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
+  const [registerUsername, setRegisterUsername] = useState("");
+  const [registerEmail, setRegisterEmail] = useState("");
+  const [registerPassword, setRegisterPassword] = useState("");
+  const [registerConfirmPassword, setRegisterConfirmPassword] = useState("");
 
   // Xử lý submit cho form đăng nhập
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/login', {
-        email: loginEmail,
-        password: loginPassword,
-      });
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/login",
+        {
+          email: loginEmail,
+          password: loginPassword,
+        }
+      );
       console.log("Đăng nhập thành công:", response.data);
-      
+
       // Lấy sessionId và tạo key lưu token dựa trên sessionId
       const sessionId = getSessionId();
       const tokenKey = "authToken_" + sessionId;
-      
+
       // Lưu token vào localStorage với key có chứa sessionId
       localStorage.setItem(tokenKey, response.data.token);
-      
+
       // Cập nhật context để lấy thông tin user
       updateUserFromToken();
-  
+
       // Chuyển hướng đến trang chính
-      navigate('/');
-      
+      navigate("/");
     } catch (error) {
-      console.error("Lỗi đăng nhập:", error.response ? error.response.data : error.message);
+      console.error(
+        "Lỗi đăng nhập:",
+        error.response ? error.response.data : error.message
+      );
       alert("Đăng nhập thất bại!");
     }
   };
-  
 
   // Xử lý submit cho form đăng ký
   const handleRegisterSubmit = async (e) => {
@@ -61,23 +64,30 @@ const Login = () => {
       return;
     }
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/register', {
-        username: registerUsername,
-        email: registerEmail,
-        password: registerPassword,
-        confirmPassword: registerConfirmPassword,
-      });
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/register",
+        {
+          username: registerUsername,
+          email: registerEmail,
+          password: registerPassword,
+          confirmPassword: registerConfirmPassword,
+        }
+      );
       console.log("Đăng ký thành công:", response.data);
       alert("Đăng ký thành công! Hãy đăng nhập.");
       setIsLogin(true);
     } catch (error) {
-      console.error("Lỗi đăng ký:", error.response ? error.response.data : error.message);
+      console.error(
+        "Lỗi đăng ký:",
+        error.response ? error.response.data : error.message
+      );
       alert("Đăng ký thất bại!");
     }
   };
 
   // Class cho floating input field
-  const floatingInput = "block py-2.5 px-0 w-full text-sm text-white bg-transparent border-0 border-b-2 border-gray-600 appearance-none focus:outline-none focus:ring-0 focus:border-indigo-500 peer";
+  const floatingInput =
+    "block py-2.5 px-0 w-full text-sm text-white bg-transparent border-0 border-b-2 border-gray-600 appearance-none focus:outline-none focus:ring-0 focus:border-indigo-500 peer";
   const floatingLabel =
     "absolute text-sm text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-indigo-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0";
 
@@ -124,17 +134,15 @@ const Login = () => {
               </div>
               <button
                 type="submit"
-                className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-md shadow hover:bg-indigo-700 transition duration-150 ease-in-out"
-              >
+                className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-md shadow hover:bg-indigo-700 transition duration-150 ease-in-out">
                 Đăng nhập
               </button>
             </form>
             <p className="text-center text-sm text-gray-400 mt-6">
-              Chưa có tài khoản?{' '}
+              Chưa có tài khoản?{" "}
               <button
                 onClick={() => setIsLogin(false)}
-                className="font-medium text-indigo-400 hover:underline"
-              >
+                className="font-medium text-indigo-400 hover:underline">
                 Đăng ký
               </button>
             </p>
@@ -201,23 +209,23 @@ const Login = () => {
                   className={floatingInput}
                   required
                 />
-                <label htmlFor="registerConfirmPassword" className={floatingLabel}>
+                <label
+                  htmlFor="registerConfirmPassword"
+                  className={floatingLabel}>
                   Nhập lại mật khẩu
                 </label>
               </div>
               <button
                 type="submit"
-                className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-md shadow hover:bg-indigo-700 transition duration-150 ease-in-out"
-              >
+                className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-md shadow hover:bg-indigo-700 transition duration-150 ease-in-out">
                 Đăng ký
               </button>
             </form>
             <p className="text-center text-sm text-gray-400 mt-6">
-              Đã có tài khoản?{' '}
+              Đã có tài khoản?{" "}
               <button
                 onClick={() => setIsLogin(true)}
-                className="font-medium text-indigo-400 hover:underline"
-              >
+                className="font-medium text-indigo-400 hover:underline">
                 Đăng nhập
               </button>
             </p>

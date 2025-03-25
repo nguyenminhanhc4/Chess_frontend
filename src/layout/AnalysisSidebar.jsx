@@ -1,10 +1,10 @@
 import PropTypes from "prop-types";
 import { useState, useEffect, useRef } from "react";
-import { 
-  FaAngleDoubleLeft, 
-  FaAngleLeft, 
-  FaAngleRight, 
-  FaAngleDoubleRight 
+import {
+  FaAngleDoubleLeft,
+  FaAngleLeft,
+  FaAngleRight,
+  FaAngleDoubleRight,
 } from "react-icons/fa";
 
 // Mapping friendly cho move category
@@ -18,17 +18,22 @@ const classificationMapping = {
   INACCURACY: "Không chính xác",
   MISTAKE: "Sai lầm",
   MISSED_MOVE: "Bỏ lỡ",
-  BLUNDER: "Thảm họa"
+  BLUNDER: "Thảm họa",
 };
 
-const AnalysisSidebar = ({ moveHistory, onMoveSelect, analysisResult, height }) => {
+const AnalysisSidebar = ({
+  moveHistory,
+  onMoveSelect,
+  analysisResult,
+  height,
+}) => {
   // Tạo danh sách cặp nước đi để hiển thị
   const movePairs = moveHistory.reduce((acc, move, index) => {
     if (index % 2 === 0) {
       acc.push({
         moveNumber: Math.floor(index / 2) + 1,
         white: move.san,
-        black: moveHistory[index + 1] ? moveHistory[index + 1].san : ""
+        black: moveHistory[index + 1] ? moveHistory[index + 1].san : "",
       });
     }
     return acc;
@@ -59,7 +64,7 @@ const AnalysisSidebar = ({ moveHistory, onMoveSelect, analysisResult, height }) 
     if (rowElement && movesContainerRef.current) {
       movesContainerRef.current.scrollTo({
         top: rowElement.offsetTop - movesContainerRef.current.offsetTop,
-        behavior: "smooth"
+        behavior: "smooth",
       });
     }
   }, [selectedIndividualIndex]);
@@ -73,21 +78,27 @@ const AnalysisSidebar = ({ moveHistory, onMoveSelect, analysisResult, height }) 
   };
 
   const handleFirst = () => updateSelectedIndividualMove(0);
-  const handlePrev = () => updateSelectedIndividualMove(selectedIndividualIndex - 1);
-  const handleNext = () => updateSelectedIndividualMove(selectedIndividualIndex + 1);
+  const handlePrev = () =>
+    updateSelectedIndividualMove(selectedIndividualIndex - 1);
+  const handleNext = () =>
+    updateSelectedIndividualMove(selectedIndividualIndex + 1);
   const handleLast = () => updateSelectedIndividualMove(moveHistory.length - 1);
 
   return (
-    <aside style={{ height }} className="min-h-screen bg-gray-800 text-white p-4 w-full flex flex-col">
+    <aside
+      style={{ height }}
+      className="min-h-screen bg-gray-800 text-white p-4 w-full flex flex-col">
       {/* Header */}
       <div className="mb-2">
         <h2 className="text-2xl font-bold text-center">Biên bản nước đi</h2>
         <hr className="border-gray-600 mt-2" />
-        </div>
-      
+      </div>
 
       {/* Vùng danh sách cuộn (chỉ danh sách moves) */}
-      <div ref={movesContainerRef} style={{ height: "50%" }} className="overflow-auto custom-scrollbar">
+      <div
+        ref={movesContainerRef}
+        style={{ height: "50%" }}
+        className="overflow-auto custom-scrollbar">
         {movePairs.length > 0 ? (
           <table className="w-full text-sm">
             <thead>
@@ -102,22 +113,27 @@ const AnalysisSidebar = ({ moveHistory, onMoveSelect, analysisResult, height }) 
                 const whiteIndex = index * 2;
                 const blackIndex = whiteIndex + 1;
                 return (
-                  <tr id={`move-row-${index}`} key={index} className="cursor-pointer">
+                  <tr
+                    id={`move-row-${index}`}
+                    key={index}
+                    className="cursor-pointer">
                     <td className="px-2 py-1">{pair.moveNumber}.</td>
                     <td
                       className={`px-2 py-1 transition-colors hover:bg-gray-700 ${
-                        selectedIndividualIndex === whiteIndex ? "bg-gray-700" : ""
+                        selectedIndividualIndex === whiteIndex
+                          ? "bg-gray-700"
+                          : ""
                       }`}
-                      onClick={() => updateSelectedIndividualMove(whiteIndex)}
-                    >
+                      onClick={() => updateSelectedIndividualMove(whiteIndex)}>
                       {pair.white}
                     </td>
                     <td
                       className={`px-2 py-1 transition-colors hover:bg-gray-700 ${
-                        selectedIndividualIndex === blackIndex ? "bg-gray-700" : ""
+                        selectedIndividualIndex === blackIndex
+                          ? "bg-gray-700"
+                          : ""
                       }`}
-                      onClick={() => updateSelectedIndividualMove(blackIndex)}
-                    >
+                      onClick={() => updateSelectedIndividualMove(blackIndex)}>
                       {pair.black}
                     </td>
                   </tr>
@@ -134,73 +150,70 @@ const AnalysisSidebar = ({ moveHistory, onMoveSelect, analysisResult, height }) 
       <div className="mt-2">
         {/* Nút điều hướng */}
         <div className="flex justify-evenly items-center mb-2">
-  <button
-    onClick={handleFirst}
-    title="Nước đi đầu tiên"
-    className="p-3 bg-gradient-to-r from-teal-500 to-teal-700 rounded-full shadow-lg hover:scale-110 transition transform duration-200 text-white"
-  >
-    <FaAngleDoubleLeft size={20} />
-  </button>
-  <button
-    onClick={handlePrev}
-    title="Nước đi trước"
-    className="p-3 bg-gradient-to-r from-teal-500 to-teal-700 rounded-full shadow-lg hover:scale-110 transition transform duration-200 text-white"
-  >
-    <FaAngleLeft size={20} />
-  </button>
-  <button
-    onClick={handleNext}
-    title="Nước đi tiếp theo"
-    className="p-3 bg-gradient-to-r from-teal-500 to-teal-700 rounded-full shadow-lg hover:scale-110 transition transform duration-200 text-white"
-  >
-    <FaAngleRight size={20} />
-  </button>
-  <button
-    onClick={handleLast}
-    title="Nước đi cuối"
-    className="p-3 bg-gradient-to-r from-teal-500 to-teal-700 rounded-full shadow-lg hover:scale-110 transition transform duration-200 text-white"
-  >
-    <FaAngleDoubleRight size={20} />
-  </button>
-</div>
+          <button
+            onClick={handleFirst}
+            title="Nước đi đầu tiên"
+            className="p-3 bg-gradient-to-r from-teal-500 to-teal-700 rounded-full shadow-lg hover:scale-110 transition transform duration-200 text-white">
+            <FaAngleDoubleLeft size={20} />
+          </button>
+          <button
+            onClick={handlePrev}
+            title="Nước đi trước"
+            className="p-3 bg-gradient-to-r from-teal-500 to-teal-700 rounded-full shadow-lg hover:scale-110 transition transform duration-200 text-white">
+            <FaAngleLeft size={20} />
+          </button>
+          <button
+            onClick={handleNext}
+            title="Nước đi tiếp theo"
+            className="p-3 bg-gradient-to-r from-teal-500 to-teal-700 rounded-full shadow-lg hover:scale-110 transition transform duration-200 text-white">
+            <FaAngleRight size={20} />
+          </button>
+          <button
+            onClick={handleLast}
+            title="Nước đi cuối"
+            className="p-3 bg-gradient-to-r from-teal-500 to-teal-700 rounded-full shadow-lg hover:scale-110 transition transform duration-200 text-white">
+            <FaAngleDoubleRight size={20} />
+          </button>
+        </div>
 
         {/* Card hiển thị thông tin phân tích với kích thước cố định */}
         {analysisResult && (
-  <div className="p-6 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-lg transition transform hover:scale-105">
-    <h3 className="text-xl font-semibold mb-4 border-b border-gray-600 pb-2">
-      Phân tích nước đi
-    </h3>
-    <div className="space-y-3">
-      <div className="flex justify-between">
-        <span className="font-medium text-gray-300">Khai cuộc:</span>
-        <span className="text-teal-400">
-          {analysisResult.openingName && analysisResult.openingName.trim() !== ""
-            ? analysisResult.openingName
-            : lastKnownOpening
-            ? lastKnownOpening
-            : "Không có khai cuộc"}
-        </span>
-      </div>
-      <div className="flex justify-between">
-        <span className="font-medium text-gray-300">Phân loại:</span>
-        <span className="text-teal-400">
-          {analysisResult.moveCategory &&
-          classificationMapping[analysisResult.moveCategory]
-            ? classificationMapping[analysisResult.moveCategory]
-            : analysisResult.moveCategory}
-        </span>
-      </div>
-      <div className="flex justify-between">
-        <span className="font-medium text-gray-300">Nước tốt nhất:</span>
-        <span className="text-teal-400">
-          {analysisResult.bestMove || "N/A"}
-        </span>
-      </div>
-    </div>
-  </div>
-)}
-
-
+          <div className="p-6 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-lg transition transform hover:scale-105">
+            <h3 className="text-xl font-semibold mb-4 border-b border-gray-600 pb-2">
+              Phân tích nước đi
+            </h3>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="font-medium text-gray-300">Khai cuộc:</span>
+                <span className="text-teal-400">
+                  {analysisResult.openingName &&
+                  analysisResult.openingName.trim() !== ""
+                    ? analysisResult.openingName
+                    : lastKnownOpening
+                    ? lastKnownOpening
+                    : "Không có khai cuộc"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium text-gray-300">Phân loại:</span>
+                <span className="text-teal-400">
+                  {analysisResult.moveCategory &&
+                  classificationMapping[analysisResult.moveCategory]
+                    ? classificationMapping[analysisResult.moveCategory]
+                    : analysisResult.moveCategory}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium text-gray-300">
+                  Nước tốt nhất:
+                </span>
+                <span className="text-teal-400">
+                  {analysisResult.bestMove || "N/A"}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </aside>
   );

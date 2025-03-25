@@ -1,14 +1,20 @@
 import PropTypes from "prop-types";
-import { FaUndo, FaRedo, FaHandPaper, FaPlus, FaChessKnight } from "react-icons/fa";
+import {
+  FaUndo,
+  FaRedo,
+  FaHandPaper,
+  FaPlus,
+  FaChessKnight,
+} from "react-icons/fa";
 
-const Sidebar = ({ 
-  moveHistory, 
-  onSurrender, 
-  onUndo, 
-  onRedo, 
-  onNewGame, 
-  difficulty, 
-  onDifficultyChange 
+const Sidebar = ({
+  moveHistory,
+  onSurrender,
+  onUndo,
+  onRedo,
+  onNewGame,
+  difficulty,
+  onDifficultyChange,
 }) => {
   // Nhóm các nước đi thành cặp dựa theo thuộc tính color
   const movePairs = [];
@@ -75,8 +81,7 @@ const Sidebar = ({
           <select
             value={difficulty}
             onChange={(e) => onDifficultyChange(e.target.value)}
-            className="p-2 bg-gray-700 text-white rounded border border-gray-600"
-          >
+            className="p-2 bg-gray-700 text-white rounded border border-gray-600">
             <option value="easy">Dễ</option>
             <option value="medium">Trung bình</option>
             <option value="hard">Khó</option>
@@ -86,8 +91,7 @@ const Sidebar = ({
           <button
             onClick={onNewGame}
             className="p-2 bg-purple-500 hover:bg-purple-600 rounded"
-            title="Ván mới"
-          >
+            title="Ván mới">
             <FaPlus className="text-white" />
           </button>
         )}
@@ -97,22 +101,19 @@ const Sidebar = ({
       <div className="flex flex-col space-y-2">
         <button
           onClick={onUndo}
-          className="w-full flex items-center justify-center space-x-2 p-2 bg-blue-500 hover:bg-blue-600 rounded"
-        >
+          className="w-full flex items-center justify-center space-x-2 p-2 bg-blue-500 hover:bg-blue-600 rounded">
           <FaUndo />
           <span>Lùi lại</span>
         </button>
         <button
           onClick={onRedo}
-          className="w-full flex items-center justify-center space-x-2 p-2 bg-green-500 hover:bg-green-600 rounded"
-        >
+          className="w-full flex items-center justify-center space-x-2 p-2 bg-green-500 hover:bg-green-600 rounded">
           <FaRedo />
           <span>Tiến tới</span>
         </button>
         <button
           onClick={onSurrender}
-          className="w-full flex items-center justify-center space-x-2 p-2 bg-red-500 hover:bg-red-600 rounded"
-        >
+          className="w-full flex items-center justify-center space-x-2 p-2 bg-red-500 hover:bg-red-600 rounded">
           <FaHandPaper />
           <span>Đầu hàng</span>
         </button>

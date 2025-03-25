@@ -31,3 +31,38 @@ body {
 .custom-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+.chess-clock-container {
+  width: 100%;
+}
+
+.time-display {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.progress-bar {
+  position: relative;
+  height: 8px;
+  background: #444;
+  margin-top: 4px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress {
+  height: 100%;
+  background: #4caf50;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.milestone-marker {
+  position: absolute;
+  top: -4px;
+  width: 2px;
+  height: 16px;
+  background: #ff0000;
+}

@@ -1,3 +1,4 @@
+// src/pages/PvpPage.jsx
 /* eslint-disable react/no-unescaped-entities */
 import { useState, useEffect, useContext, useRef } from "react";
 import { Chess } from "chess.js";
@@ -11,10 +12,10 @@ import { UserAuthContext } from "../context/UserAuthContext";
 import axios from "axios";
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
-import { FaSpinner } from "react-icons/fa";
-import { FaTimes, FaCommentAlt } from "react-icons/fa";
+import { FaSpinner, FaTimes, FaCommentAlt, FaArrowLeft } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ChessClock from "../components/ChessClock";
 
 const cloneGame = (gameInstance) => {
   return Object.assign(
@@ -24,6 +25,7 @@ const cloneGame = (gameInstance) => {
 };
 
 const PvpPage = () => {
+  // Các state chính
   const [game, setGame] = useState(new Chess());
   const [redoStack, setRedoStack] = useState([]);
   const [orientation, setOrientation] = useState(null);
@@ -35,8 +37,30 @@ const PvpPage = () => {
   const [gameSaved, setGameSaved] = useState(false);
   const gameSavedRef = useRef(false);
   const [loadingMatch, setLoadingMatch] = useState(false);
-  // State để quản lý hiển thị popup
+  // Popup modal duy nhất để chọn kiểu chơi và tìm trận
   const [showPopup, setShowPopup] = useState(true);
+  // Lưu kiểu chơi: "standard", "rapid", "bullet"
+  const [gameMode, setGameMode] = useState(() => {
+    return localStorage.getItem("gameMode") || "standard";
+  });
+  // activeColor quản lý lượt đồng hồ ("w" hay "b")
+  const [activeColor, setActiveColor] = useState("w");
+
+  // Hàm trả về thời gian ban đầu dựa theo kiểu chơi đã chọn
+  const getInitialTime = () => {
+    switch (gameMode) {
+      case "rapid":
+        return 180; // 3 phút
+      case "bullet":
+        return 60; // 1 phút
+      case "standard":
+      default:
+        return 300; // 5 phút
+    }
+  };
+
+  // Nếu người dùng chưa chọn kiểu chơi, mặc định thời gian là 5 phút
+  const initialTime = gameMode ? getInitialTime() : 300;
 
   const boardOrientation = orientation || "white";
   const playerColor = boardOrientation === "white" ? "w" : "b";
@@ -46,7 +70,10 @@ const PvpPage = () => {
     matchInfoRef.current = matchInfo;
   }, [matchInfo]);
 
-  // Khi matchInfo thay đổi, nếu có dữ liệu thì tắt loading và popup
+  useEffect(() => {
+    localStorage.setItem("gameMode", gameMode);
+  }, [gameMode]);
+
   useEffect(() => {
     if (matchInfo) {
       setLoadingMatch(false);
@@ -60,6 +87,30 @@ const PvpPage = () => {
       console.log("Component unmounted");
     };
   }, []);
+
+  // Hàm xử lý khi đồng hồ hết giờ
+  const handleTimeOut = (color) => {
+    console.log(`Đồng hồ của ${color} hết giờ!`);
+    if (color === playerColor) {
+      setGameResult("LOSE");
+    } else {
+      setGameResult("WIN");
+    }
+    if (stompClient && stompClient.connected) {
+      const payload = {
+        sender: user.username,
+        matchId: matchInfo ? matchInfo.matchId : null,
+        result: color === playerColor ? "LOSE" : "WIN",
+      };
+      stompClient.publish({
+        destination: "/app/game-over",
+        body: JSON.stringify(payload),
+      });
+    }
+    saveGameToServer(color === playerColor ? "LOSE" : "WIN");
+    setGameSaved(true);
+    gameSavedRef.current = true;
+  };
 
   const updatePositionOnServer = async (moves) => {
     try {
@@ -79,14 +130,12 @@ const PvpPage = () => {
       console.log("User not logged in, cannot save game.");
       return;
     }
-
     const currentMatchInfo = matchInfoRef.current;
     const opponent = currentMatchInfo
       ? user.username === currentMatchInfo.white
         ? currentMatchInfo.black
         : currentMatchInfo.white
       : "Chưa có đối thủ";
-
     const movesHistory = game.history({ verbose: false });
     const gameData = {
       playerUsername: user.username,
@@ -178,6 +227,7 @@ const PvpPage = () => {
     if (move) {
       setGame(cloneGame(game));
       setRedoStack([]);
+      setActiveColor(game.turn());
       const movesHistory = game.history({ verbose: true });
       const movesString = movesHistory.map((m) => m.from + m.to).join(" ");
       await updatePositionOnServer(movesString);
@@ -305,7 +355,7 @@ const PvpPage = () => {
   };
 
   const handleClosePopup = () => {
-    setGameResult(null);
+    setShowPopup(false);
   };
 
   const handleSendChat = (msg) => {
@@ -348,10 +398,6 @@ const PvpPage = () => {
         setMatchInfo(match);
         if (match.white && match.black && user) {
           setOrientation(user.username === match.white ? "white" : "black");
-          console.log(
-            "Orientation set to:",
-            user.username === match.white ? "white" : "black"
-          );
         }
       });
       client.subscribe("/user/queue/move", (message) => {
@@ -371,6 +417,7 @@ const PvpPage = () => {
           }
           return newGame;
         });
+        setActiveColor(game.turn());
       });
       client.subscribe("/user/queue/chat", (message) => {
         const chatMsg = JSON.parse(message.body);
@@ -409,47 +456,81 @@ const PvpPage = () => {
 
   const moveHistoryVerbose = game.history({ verbose: true });
 
+  // opponentInfo và youInfo hiển thị theo hàng ngang:
   const opponentInfo = matchInfo ? (
-    <div className="flex items-center justify-center space-x-2 mb-2">
-      <img
-        src={
-          user && user.username === matchInfo.white
-            ? "../../public/user_default.jpg"
-            : "../../public/user_default.jpg"
-        }
-        alt="Opponent"
-        className="w-8 h-8 rounded-full"
-      />
-      <div className="text-white px-2 py-1 rounded bg-gray-700">
-        {user && user.username === matchInfo.white
-          ? matchInfo.black
-          : matchInfo.white}
+    <div className="flex items-center justify-between w-full px-4 py-2 mb-2 bg-gray-800 rounded-md shadow-sm">
+      <div className="flex items-center space-x-2">
+        <img
+          src={
+            user && user.username === matchInfo.white
+              ? "../../public/user_default.jpg"
+              : "../../public/user_default.jpg"
+          }
+          alt="Opponent"
+          className="w-10 h-10 rounded-full border border-blue-400"
+        />
+        <div className="text-white text-base font-medium">
+          {user && user.username === matchInfo.white
+            ? matchInfo.black
+            : matchInfo.white}
+        </div>
+      </div>
+      <div className="text-xl font-bold text-yellow-400">
+        <ChessClock
+          initialTime={initialTime}
+          isActive={activeColor === (orientation === "white" ? "b" : "w")}
+          onTimeOut={handleTimeOut}
+          playerColor={orientation === "white" ? "b" : "w"}
+        />
       </div>
     </div>
   ) : (
-    <div className="flex items-center justify-center space-x-2 mb-2">
-      <img
-        src="../../public/user_default.jpg"
-        alt="Opponent"
-        className="w-8 h-8 rounded-full"
-      />
-      <div className="text-white px-2 py-1 rounded bg-gray-700">
-        Waiting for opponent...
+    <div className="flex items-center justify-between w-full px-4 py-2 mb-2 bg-gray-800 rounded-md shadow-sm">
+      <div className="flex items-center space-x-2">
+        <img
+          src="../../public/user_default.jpg"
+          alt="Opponent"
+          className="w-10 h-10 rounded-full border border-blue-400"
+        />
+        <div className="text-white text-base font-medium">
+          Waiting for opponent...
+        </div>
+      </div>
+      <div className="text-xl font-bold text-white">
+        <ChessClock
+          initialTime={initialTime}
+          isActive={false}
+          onTimeOut={handleTimeOut}
+          playerColor={orientation === "white" ? "b" : "w"}
+        />
       </div>
     </div>
   );
 
   const youInfo = (
-    <div className="flex items-center justify-center space-x-2 mt-2">
-      <img
-        src={
-          user && user.avatar ? user.avatar : "../../public/user_default.jpg"
-        }
-        alt="You"
-        className="w-8 h-8 rounded-full"
-      />
-      <div className="text-white px-2 py-1 rounded bg-gray-700">
-        {user ? `${user.username} (${user.rating ?? "N/A"})` : "User (600)"}
+    <div className="flex items-center justify-between w-full px-4 py-2 mt-2 bg-gray-800 rounded-md shadow-sm">
+      <div className="flex items-center space-x-2">
+        <img
+          src={
+            user && user.avatar ? user.avatar : "../../public/user_default.jpg"
+          }
+          alt="You"
+          className="w-10 h-10 rounded-full border border-green-400"
+        />
+        <div className="text-white text-base font-medium">
+          {user ? `${user.username} (${user.rating ?? "N/A"})` : "User (600)"}
+        </div>
+      </div>
+      <div
+        className={`text-xl font-bold ${
+          matchInfo ? "text-yellow-400" : "text-white"
+        }`}>
+        <ChessClock
+          initialTime={initialTime}
+          isActive={matchInfo ? activeColor === playerColor : false}
+          onTimeOut={handleTimeOut}
+          playerColor={playerColor}
+        />
       </div>
     </div>
   );
@@ -491,6 +572,8 @@ const PvpPage = () => {
             chatMessages={chatMessages}
             matchInfo={matchInfo}
             currentUser={user ? user.username : ""}
+            gameMode={gameMode}
+            setGameMode={setGameMode}
           />
         </div>
       </div>
@@ -504,76 +587,145 @@ const PvpPage = () => {
           onClose={handleClosePopup}
         />
       )}
-      {/* Popup Modal: Hiển thị khi chưa có matchInfo và showPopup=true */}
-      {/* Popup Modal: Hiển thị khi chưa có matchInfo và showPopup=true */}
+      {/* Popup modal duy nhất kết hợp chọn kiểu chơi và tìm trận */}
       {!matchInfo && showPopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
-          <div className="relative bg-gradient-to-r from-blue-500 to-blue-700 p-8 rounded-lg shadow-lg text-white">
-            {/* Nút X để đóng popup */}
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
+          <div className="relative bg-gray-900 p-8 rounded-2xl shadow-2xl text-white w-96">
             <button
-              onClick={() => setShowPopup(false)}
-              className="absolute top-2 right-2 text-white hover:text-gray-300">
-              <FaTimes size={20} />
+              onClick={handleClosePopup}
+              className="absolute top-4 right-4 text-white hover:text-gray-300">
+              <FaTimes size={24} />
             </button>
-            <h2 className="text-2xl font-bold mb-4 text-center">Chế độ PvP</h2>
-            <p className="mb-6 text-center">
-              Hiện chưa có trận đấu. Vui lòng nhấn "Tìm trận" để ghép đấu với
-              đối thủ.
-            </p>
-            <button
-              onClick={async () => {
-                if (user) {
-                  if (loadingMatch) {
-                    // Nếu đang trong trạng thái loading, nhấn để hủy tìm trận
-                    try {
-                      await axios.post(
-                        "http://localhost:8080/api/matchmaking/cancel",
-                        user,
-                        { headers: { "Content-Type": "application/json" } }
-                      );
-                      console.log("Cancelled matchmaking");
-                    } catch (error) {
-                      console.error("Error cancelling matchmaking:", error);
-                    }
-                    setLoadingMatch(false);
-                  } else {
-                    // Nếu chưa đang loading, gọi API join matchmaking
-                    setLoadingMatch(true);
-                    try {
-                      const response = await axios.post(
-                        "http://localhost:8080/api/matchmaking/join",
-                        user,
-                        { headers: { "Content-Type": "application/json" } }
-                      );
-                      console.log("Joined matchmaking:", response.data);
-                      // Không đặt setLoadingMatch(false) tại đây vì state sẽ được thay đổi khi matchInfo cập nhật.
-                    } catch (error) {
-                      console.error("Error joining matchmaking:", error);
-                      setLoadingMatch(false);
-                    }
-                  }
-                }
-              }}
-              disabled={!!matchInfo}
-              className={`w-full py-3 font-bold rounded-full shadow-lg transition-colors duration-300 flex items-center justify-center space-x-2 ${
-                matchInfo
-                  ? "bg-gray-500 cursor-not-allowed"
-                  : loadingMatch
-                  ? "bg-blue-200"
-                  : "bg-white text-blue-700 hover:bg-blue-100"
-              }`}>
-              {loadingMatch ? (
-                <div className="flex items-center space-x-2">
-                  <FaSpinner className="animate-spin text-blue-700" size={20} />
-                  <span className="text-blue-700">Hủy tìm trận</span>
+            {!gameMode ? (
+              <>
+                <div className="mb-6">
+                  <h2 className="text-3xl font-bold text-center">
+                    Chọn kiểu chơi
+                  </h2>
+                  <hr className="border-gray-600 mt-3" />
                 </div>
-              ) : (
-                <>
-                  <FaCommentAlt />
-                  <span>Tìm trận</span>
-                </>
-              )}
-            </button>
+                <div className="grid grid-cols-1 gap-6">
+                  {/* Card cho Cờ tiêu chuẩn */}
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 shadow-lg flex flex-col items-center">
+                    <span className="text-2xl font-semibold">
+                      Cờ tiêu chuẩn
+                    </span>
+                    <button
+                      onClick={() => setGameMode("standard")}
+                      className="mt-4 w-full py-2 px-4 rounded-lg text-white font-medium transition-all duration-300 bg-transparent border border-white hover:bg-white hover:text-green-600">
+                      5 phút
+                    </button>
+                  </div>
+                  {/* Card cho Cờ nhanh */}
+                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 shadow-lg flex flex-col items-center">
+                    <span className="text-2xl font-semibold">Cờ nhanh</span>
+                    <button
+                      onClick={() => setGameMode("rapid")}
+                      className="mt-4 w-full py-2 px-4 rounded-lg text-white font-medium transition-all duration-300 bg-transparent border border-white hover:bg-white hover:text-blue-600">
+                      3 phút
+                    </button>
+                  </div>
+                  {/* Card cho Cờ chớp */}
+                  <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-xl p-6 shadow-lg flex flex-col items-center">
+                    <span className="text-2xl font-semibold">Cờ chớp</span>
+                    <button
+                      onClick={() => setGameMode("bullet")}
+                      className="mt-4 w-full py-2 px-4 rounded-lg text-white font-medium transition-all duration-300 bg-transparent border border-white hover:bg-white hover:text-red-600">
+                      1 phút
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center">
+                {/* Nút quay lại với chức năng hủy tìm trận nếu đang active */}
+                <div className="w-full flex items-center mb-6">
+                  <button
+                    onClick={async () => {
+                      if (loadingMatch) {
+                        try {
+                          await axios.post(
+                            "http://localhost:8080/api/matchmaking/cancel",
+                            { ...user, gameMode },
+                            { headers: { "Content-Type": "application/json" } }
+                          );
+                          console.log("Cancelled matchmaking");
+                        } catch (error) {
+                          console.error("Error cancelling matchmaking:", error);
+                        }
+                        setLoadingMatch(false);
+                      }
+                      setGameMode(null);
+                    }}
+                    className="text-red-500 hover:text-red-400 mr-2">
+                    <FaArrowLeft size={24} />
+                  </button>
+                  <h2 className="text-3xl font-bold">Chế độ PvP</h2>
+                </div>
+                <p className="text-center mb-6">
+                  Kiểu chơi đã chọn:{" "}
+                  <span className="font-bold">
+                    {gameMode === "standard"
+                      ? "Cờ tiêu chuẩn (5 phút)"
+                      : gameMode === "rapid"
+                      ? "Cờ nhanh (3 phút)"
+                      : "Cờ chớp (1 phút)"}
+                  </span>
+                </p>
+                <button
+                  onClick={async () => {
+                    if (loadingMatch) {
+                      try {
+                        await axios.post(
+                          "http://localhost:8080/api/matchmaking/cancel",
+                          { ...user, gameMode },
+                          { headers: { "Content-Type": "application/json" } }
+                        );
+                        console.log("Cancelled matchmaking");
+                      } catch (error) {
+                        console.error("Error cancelling matchmaking:", error);
+                      }
+                      setLoadingMatch(false);
+                    } else {
+                      setLoadingMatch(true);
+                      try {
+                        const response = await axios.post(
+                          "http://localhost:8080/api/matchmaking/join",
+                          { ...user, gameMode },
+                          { headers: { "Content-Type": "application/json" } }
+                        );
+                        console.log("Joined matchmaking:", response.data);
+                      } catch (error) {
+                        console.error("Error joining matchmaking:", error);
+                        setLoadingMatch(false);
+                      }
+                    }
+                  }}
+                  disabled={!!matchInfo}
+                  className={`w-full py-3 font-bold rounded-full shadow-lg transition-colors duration-300 flex items-center justify-center space-x-2 ${
+                    matchInfo
+                      ? "bg-gray-500 cursor-not-allowed"
+                      : loadingMatch
+                      ? "bg-blue-200"
+                      : "bg-white text-blue-700 hover:bg-blue-100"
+                  }`}>
+                  {loadingMatch ? (
+                    <div className="flex items-center space-x-2">
+                      <FaSpinner
+                        className="animate-spin text-blue-700"
+                        size={20}
+                      />
+                      <span className="text-blue-700">Hủy tìm trận</span>
+                    </div>
+                  ) : (
+                    <>
+                      <FaCommentAlt />
+                      <span>Tìm trận</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

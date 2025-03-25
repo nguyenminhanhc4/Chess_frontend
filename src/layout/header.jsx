@@ -1,16 +1,16 @@
-import { useContext } from 'react';
-import { Link } from 'react-router-dom';
-import { UserAuthContext } from '../context/UserAuthContext';
-import { FaSignOutAlt } from 'react-icons/fa';
-import { getSessionId } from '../utils/session';
+import { useContext } from "react";
+import { Link } from "react-router-dom";
+import { UserAuthContext } from "../context/UserAuthContext";
+import { FaSignOutAlt } from "react-icons/fa";
+import { getSessionId } from "../utils/session";
 
 const Header = () => {
   const { user, updateUserFromToken } = useContext(UserAuthContext);
 
-  const handleLogout = () => { 
-    const sessionId = getSessionId(); 
-    const tokenKey = "authToken_" + sessionId; 
-    localStorage.removeItem(tokenKey); 
+  const handleLogout = () => {
+    const sessionId = getSessionId();
+    const tokenKey = "authToken_" + sessionId;
+    localStorage.removeItem(tokenKey);
     updateUserFromToken(); // Cập nhật context sau khi đăng xuất };
   };
 
@@ -20,7 +20,7 @@ const Header = () => {
       <div className="flex items-center">
         <div className="w-16 h-16 rounded-full overflow-hidden mr-2">
           <img
-            src="/logo_chess_app.png"  // Đảm bảo file logo nằm trong thư mục public
+            src="/logo_chess_app.png" // Đảm bảo file logo nằm trong thư mục public
             alt="Chess App Logo"
             className="object-cover w-full h-full"
           />
@@ -33,12 +33,16 @@ const Header = () => {
         {user ? (
           <div className="flex items-center space-x-3">
             <img
-              src={user.profilePicture || "/user_default.jpg"}  // Đảm bảo file ảnh nằm trong thư mục public
+              src={user.profilePicture || "/user_default.jpg"} // Đảm bảo file ảnh nằm trong thư mục public
               alt="User Avatar"
               className="w-10 h-10 rounded-full border-2 border-blue-300"
             />
-            <span className="text-sm md:text-base">Xin chào, {user.username}</span>
-            <button onClick={handleLogout} className="text-red-500 hover:text-red-600">
+            <span className="text-sm md:text-base">
+              Xin chào, {user.username}
+            </span>
+            <button
+              onClick={handleLogout}
+              className="text-red-500 hover:text-red-600">
               <FaSignOutAlt size={24} />
             </button>
           </div>

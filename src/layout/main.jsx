@@ -16,8 +16,6 @@ const cloneGame = (gameInstance) => {
   );
 };
 
-
-
 const MainLayout = () => {
   const [game, setGame] = useState(new Chess());
   const [redoStack, setRedoStack] = useState([]);
@@ -45,14 +43,15 @@ const MainLayout = () => {
       console.error("Error updating position:", error);
     }
   };
-  
 
   // Hàm lấy nước đi của máy từ backend, truyền tham số độ khó
   const getEngineMoveFromServer = async () => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/engine/go?difficulty=${difficulty}`);
+      const response = await axios.get(
+        `http://localhost:8080/api/engine/go?difficulty=${difficulty}`
+      );
       console.log("Engine move response:", response.data);
-  
+
       // Giả sử kết quả trả về có dạng: "bestmove e2e4"
       const match = response.data.match(/bestmove\s(\w+)/);
       if (match && match[1]) {
@@ -64,7 +63,6 @@ const MainLayout = () => {
       return null;
     }
   };
-  
 
   // Kiểm tra game over
   useEffect(() => {
@@ -82,12 +80,11 @@ const MainLayout = () => {
       } else {
         result = "DRAW";
       }
-  
+
       setGameResult(result);
       saveGameToServer(result);
     }
   }, [game]);
-  
 
   // Xử lý nước đi mới, tích hợp gọi API backend
   const handleMove = async (from, to, promotion = null) => {
@@ -95,38 +92,40 @@ const MainLayout = () => {
     if (move) {
       setGame(cloneGame(game));
       setRedoStack([]);
-  
+
       // Tạo chuỗi moves từ lịch sử nước đi
       const movesHistory = game.history({ verbose: true });
-      const movesString = movesHistory.map(m => m.from + m.to).join(" ");
-      
+      const movesString = movesHistory.map((m) => m.from + m.to).join(" ");
+
       // Cập nhật vị trí lên backend với chuỗi moves
       await updatePositionOnServer(movesString);
-  
+
       // Xác định màu người chơi dựa trên board orientation
       const playerColor = orientation === "white" ? "w" : "b";
       if (game.turn() !== playerColor) {
         let engineMoveSan = await getEngineMoveFromServer(); // Ví dụ: "e2e4"
-        
+
         if (engineMoveSan) {
           // Áp dụng yếu tố ngẫu nhiên tùy theo độ khó
           if (difficulty === "easy" && Math.random() < 0.7) {
             const legalMoves = game.moves({ verbose: true });
             if (legalMoves.length > 0) {
-              const randomMove = legalMoves[Math.floor(Math.random() * legalMoves.length)];
+              const randomMove =
+                legalMoves[Math.floor(Math.random() * legalMoves.length)];
               engineMoveSan = randomMove.from + randomMove.to;
               console.log("Easy mode random move:", engineMoveSan);
             }
           } else if (difficulty === "medium" && Math.random() < 0.5) {
             const legalMoves = game.moves({ verbose: true });
             if (legalMoves.length > 0) {
-              const randomMove = legalMoves[Math.floor(Math.random() * legalMoves.length)];
+              const randomMove =
+                legalMoves[Math.floor(Math.random() * legalMoves.length)];
               engineMoveSan = randomMove.from + randomMove.to;
               console.log("Medium mode random move:", engineMoveSan);
             }
           }
         }
-  
+
         if (engineMoveSan) {
           // Thêm delay để tạo hiệu ứng "suy nghĩ" cho AI
           setTimeout(() => {
@@ -140,14 +139,13 @@ const MainLayout = () => {
     }
     return false;
   };
-  
-  
+
   const saveGameToServer = async (result) => {
     if (!user) {
       console.log("Người chơi chưa đăng nhập, không lưu ván đấu.");
       return;
     }
-  
+
     const gameData = {
       playerUsername: user.username,
       opponent: "Bot",
@@ -156,9 +154,12 @@ const MainLayout = () => {
       finalFen: game.fen(),
       result: result.toUpperCase(), // WIN, LOSE hoặc DRAW
     };
-  
+
     try {
-      const response = await axios.post("http://localhost:8080/api/game/save", gameData);
+      const response = await axios.post(
+        "http://localhost:8080/api/game/save",
+        gameData
+      );
       console.log("Ván đấu đã được lưu:", response.data);
     } catch (error) {
       console.error("Lỗi khi lưu ván đấu:", error);
@@ -219,8 +220,7 @@ const MainLayout = () => {
       <div
         className={`text-white px-2 py-1 rounded ${
           game.turn() === "b" ? "bg-green-600" : "bg-gray-700"
-        }`}
-      >
+        }`}>
         Bot (600)
       </div>
     </div>
@@ -229,15 +229,16 @@ const MainLayout = () => {
   const youInfo = (
     <div className="flex items-center justify-center space-x-2 mt-2">
       <img
-        src={user && user.avatar ? user.avatar : "../../public/user_default.jpg"}
+        src={
+          user && user.avatar ? user.avatar : "../../public/user_default.jpg"
+        }
         alt="You"
         className="w-8 h-8 rounded-full"
       />
       <div
         className={`text-white px-2 py-1 rounded ${
           game.turn() === "w" ? "bg-green-600" : "bg-gray-700"
-        }`}
-      >
+        }`}>
         {user ? `${user.username} (${user.rating ?? "N/A"})` : "User (600)"}
       </div>
     </div>

@@ -1,13 +1,15 @@
-import PropTypes from 'prop-types';
-import { GiChessKing } from 'react-icons/gi';
-import { IoMdClose } from 'react-icons/io';
+import PropTypes from "prop-types";
+import { GiChessKing } from "react-icons/gi";
+import { IoMdClose } from "react-icons/io";
 
 const GameResultPopup = ({ result, onHome, onNewGame, onClose }) => {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 animate-fadeIn">
       <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-2xl shadow-2xl w-80 md:w-96 flex flex-col items-center backdrop-blur-sm border border-gray-700">
         {/* Nút đóng */}
-        <button onClick={onClose} className="absolute top-2 right-2 text-gray-400 hover:text-white transition-colors">
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-gray-400 hover:text-white transition-colors">
           <IoMdClose size={24} />
         </button>
         {/* Icon vua cờ nổi bật */}
@@ -21,14 +23,12 @@ const GameResultPopup = ({ result, onHome, onNewGame, onClose }) => {
         <div className="mt-6 flex space-x-4">
           <button
             onClick={onHome}
-            className="px-5 py-2 bg-indigo-600 text-white font-medium rounded-full hover:bg-indigo-700 transition-all duration-200 transform hover:scale-105"
-          >
+            className="px-5 py-2 bg-indigo-600 text-white font-medium rounded-full hover:bg-indigo-700 transition-all duration-200 transform hover:scale-105">
             Trang chủ
           </button>
           <button
             onClick={onNewGame}
-            className="px-5 py-2 bg-indigo-600 text-white font-medium rounded-full hover:bg-indigo-700 transition-all duration-200 transform hover:scale-105"
-          >
+            className="px-5 py-2 bg-indigo-600 text-white font-medium rounded-full hover:bg-indigo-700 transition-all duration-200 transform hover:scale-105">
             Ván mới
           </button>
         </div>

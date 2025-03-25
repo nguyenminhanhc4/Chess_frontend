@@ -15,7 +15,7 @@ const Nav = () => {
           <div className="flex items-center space-x-1">
             <div className="w-16 h-16 rounded-full overflow-hidden">
               <img
-                src="/logo_chess_app.png"  // Đảm bảo file nằm trong public
+                src="/logo_chess_app.png" // Đảm bảo file nằm trong public
                 alt="Chess App Logo"
                 className="object-cover w-full h-full"
               />
@@ -28,43 +28,61 @@ const Nav = () => {
         {user && (
           <div className="flex items-center space-x-2 mb-8">
             <img
-              src={user.profilePicture || "/user_default.jpg"}  // Đảm bảo file ảnh nằm trong public
+              src={user.profilePicture || "/user_default.jpg"} // Đảm bảo file ảnh nằm trong public
               alt="Avatar"
               className="w-10 h-10 rounded-full border-2 border-blue-300"
             />
             <div>
               <div className="font-semibold">{user.username}</div>
-              <div className="text-sm text-gray-200">Rating: {user.rating ?? 600}</div>
+              <div className="text-sm text-gray-200">
+                Rating: {user.rating ?? 600}
+              </div>
             </div>
           </div>
         )}
 
         {/* Danh sách chức năng chính */}
         <ul className="space-y-4">
-          <li className="text-gray-400 uppercase text-xs tracking-wider">Chế độ chơi</li>
+          <li className="text-gray-400 uppercase text-xs tracking-wider">
+            Chế độ chơi
+          </li>
           <li className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-600 cursor-pointer">
             <FaGamepad />
-            <Link to="/online" className="text-white">Chơi trực tuyến</Link>
+            <Link to="/online" className="text-white">
+              Chơi trực tuyến
+            </Link>
           </li>
           <li className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-600 cursor-pointer">
             <FaRobot />
-            <Link to="/main" className="text-white">Chơi với máy</Link>
+            <Link to="/main" className="text-white">
+              Chơi với máy
+            </Link>
           </li>
 
-          <li className="mt-6 text-gray-400 uppercase text-xs tracking-wider">Phân tích & Lịch sử</li>
+          <li className="mt-6 text-gray-400 uppercase text-xs tracking-wider">
+            Phân tích & Lịch sử
+          </li>
           <li className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-600 cursor-pointer">
             <FaChartBar />
-            <Link to="/history" className="text-white">Lưu trữ & phân tích ván đấu</Link>
+            <Link to="/history" className="text-white">
+              Lưu trữ & phân tích ván đấu
+            </Link>
           </li>
 
-          <li className="mt-6 text-gray-400 uppercase text-xs tracking-wider">Khác</li>
+          <li className="mt-6 text-gray-400 uppercase text-xs tracking-wider">
+            Khác
+          </li>
           <li className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-600 cursor-pointer">
             <FaHome />
-            <Link to="/" className="text-white">Trang chủ</Link>
+            <Link to="/" className="text-white">
+              Trang chủ
+            </Link>
           </li>
           <li className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-600 cursor-pointer">
             <FaCog />
-            <Link to="/settings" className="text-white">Cài đặt</Link>
+            <Link to="/settings" className="text-white">
+              Cài đặt
+            </Link>
           </li>
         </ul>
       </div>

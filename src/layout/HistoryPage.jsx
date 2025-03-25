@@ -74,8 +74,10 @@ const HistoryPage = () => {
         </div>
 
         <main className="flex-1 p-8">
-          <h1 className="text-3xl font-bold mb-6 text-white">Lịch sử ván đấu</h1>
-          
+          <h1 className="text-3xl font-bold mb-6 text-white">
+            Lịch sử ván đấu
+          </h1>
+
           {/* Bộ lọc và tìm kiếm */}
           <div className="mb-6 p-4 bg-[#2d3748] rounded-lg shadow flex flex-wrap items-end gap-4 border border-teal-400">
             <div className="flex flex-col">
@@ -83,15 +85,16 @@ const HistoryPage = () => {
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="p-2 bg-[#2d3748] border border-teal-400 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
-              >
+                className="p-2 bg-[#2d3748] border border-teal-400 rounded focus:outline-none focus:ring-2 focus:ring-teal-500">
                 <option value="ALL">Tất cả</option>
                 <option value="BOT">Bot</option>
                 <option value="HUMAN">Người</option>
               </select>
             </div>
             <div className="flex flex-col">
-              <label className="mb-1 font-semibold text-white">Tìm kiếm kết quả</label>
+              <label className="mb-1 font-semibold text-white">
+                Tìm kiếm kết quả
+              </label>
               <input
                 type="text"
                 placeholder="Ví dụ: WIN, LOSE, DRAW..."
@@ -135,8 +138,7 @@ const HistoryPage = () => {
                       key={game.id}
                       className="hover:bg-[#1e293b] transition-colors cursor-pointer"
                       onMouseEnter={() => setHoveredGame(game)}
-                      onMouseLeave={() => setHoveredGame(null)}
-                    >
+                      onMouseLeave={() => setHoveredGame(null)}>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-200">
                         {new Date(game.createdAt).toLocaleString()}
                       </td>
@@ -155,8 +157,7 @@ const HistoryPage = () => {
                       <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-200">
                         <button
                           className="text-blue-300 hover:text-blue-500"
-                          onClick={(e) => handleAnalysisButtonClick(game, e)}
-                        >
+                          onClick={(e) => handleAnalysisButtonClick(game, e)}>
                           <FaSearch size={18} />
                         </button>
                       </td>
@@ -171,8 +172,7 @@ const HistoryPage = () => {
                   <button
                     onClick={() => currentPage > 1 && goToPage(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="px-3 py-1 bg-teal-600 rounded disabled:opacity-50"
-                  >
+                    className="px-3 py-1 bg-teal-600 rounded disabled:opacity-50">
                     Prev
                   </button>
                   {Array.from({ length: totalPages }, (_, i) => (
@@ -183,8 +183,7 @@ const HistoryPage = () => {
                         currentPage === i + 1
                           ? "bg-teal-800 text-white"
                           : "bg-teal-600 text-gray-200"
-                      }`}
-                    >
+                      }`}>
                       {i + 1}
                     </button>
                   ))}
@@ -193,14 +192,13 @@ const HistoryPage = () => {
                       currentPage < totalPages && goToPage(currentPage + 1)
                     }
                     disabled={currentPage === totalPages}
-                    className="px-3 py-1 bg-teal-600 rounded disabled:opacity-50"
-                  >
+                    className="px-3 py-1 bg-teal-600 rounded disabled:opacity-50">
                     Next
                   </button>
                 </div>
               )}
             </div>
-            
+
             {/* Cột preview bàn cờ */}
             <div className="w-2/5 p-4 border-l border-gray-700 flex flex-col items-center justify-center">
               {hoveredGame ? (

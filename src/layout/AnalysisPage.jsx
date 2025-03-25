@@ -21,7 +21,9 @@ const AnalysisPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const resGame = await axios.get(`http://localhost:8080/api/game/${gameId}`);
+        const resGame = await axios.get(
+          `http://localhost:8080/api/game/${gameId}`
+        );
         const gameData = resGame.data;
         setGameDetails(gameData);
 
@@ -33,20 +35,25 @@ const AnalysisPage = () => {
 
         if (gameData.moves && gameData.moves !== "No moves") {
           const chessForHistory = new Chess();
-          const movesArray = gameData.moves.split(" ").filter((m) => m.trim() !== "");
-          movesArray.forEach(move => chessForHistory.move(move));
+          const movesArray = gameData.moves
+            .split(" ")
+            .filter((m) => m.trim() !== "");
+          movesArray.forEach((move) => chessForHistory.move(move));
           const verboseHistory = chessForHistory.history({ verbose: true });
           setMoveHistory(verboseHistory);
         } else {
           setMoveHistory([]);
         }
-        
 
-        const resPlayer = await axios.get(`http://localhost:8080/api/users/username/${gameData.playerUsername}`);
+        const resPlayer = await axios.get(
+          `http://localhost:8080/api/users/username/${gameData.playerUsername}`
+        );
         setPlayerInfo(resPlayer.data);
 
         if (gameData.opponentType !== "BOT") {
-          const resOpponent = await axios.get(`http://localhost:8080/api/users/username/${gameData.opponent}`);
+          const resOpponent = await axios.get(
+            `http://localhost:8080/api/users/username/${gameData.opponent}`
+          );
           setOpponentInfo(resOpponent.data);
         }
       } catch (error) {
@@ -100,14 +107,25 @@ const AnalysisPage = () => {
     <div className="flex items-center justify-center space-x-2 mb-2">
       {gameDetails.opponentType === "BOT" ? (
         <>
-          <img src="/robo_icon.jpg" alt="Opponent" className="w-8 h-8 rounded-full" />
-          <div className="text-white px-2 py-1 rounded bg-green-600">{gameDetails.opponent}</div>
+          <img
+            src="/robo_icon.jpg"
+            alt="Opponent"
+            className="w-8 h-8 rounded-full"
+          />
+          <div className="text-white px-2 py-1 rounded bg-green-600">
+            {gameDetails.opponent}
+          </div>
         </>
       ) : opponentInfo ? (
         <>
-          <img src={opponentInfo.profilePicture || "/user_default.jpg"} alt="Opponent" className="w-8 h-8 rounded-full" />
+          <img
+            src={opponentInfo.profilePicture || "/user_default.jpg"}
+            alt="Opponent"
+            className="w-8 h-8 rounded-full"
+          />
           <div className="text-white px-2 py-1 rounded bg-green-600">
-            {gameDetails.opponent} {opponentInfo.rating ? `(Rating: ${opponentInfo.rating})` : ""}
+            {gameDetails.opponent}{" "}
+            {opponentInfo.rating ? `(Rating: ${opponentInfo.rating})` : ""}
           </div>
         </>
       ) : (
@@ -120,9 +138,14 @@ const AnalysisPage = () => {
     <div className="flex items-center justify-center space-x-2 mt-2">
       {playerInfo ? (
         <>
-          <img src={playerInfo.profilePicture || "/user_default.jpg"} alt="Player" className="w-8 h-8 rounded-full" />
+          <img
+            src={playerInfo.profilePicture || "/user_default.jpg"}
+            alt="Player"
+            className="w-8 h-8 rounded-full"
+          />
           <div className="text-white px-2 py-1 rounded bg-green-600">
-            {gameDetails.playerUsername} {playerInfo.rating ? `(Rating: ${playerInfo.rating})` : ""}
+            {gameDetails.playerUsername}{" "}
+            {playerInfo.rating ? `(Rating: ${playerInfo.rating})` : ""}
           </div>
         </>
       ) : (
@@ -135,19 +158,23 @@ const AnalysisPage = () => {
     <div className="flex flex-col min-h-screen">
       <Header />
       <div className="flex flex-grow">
-        <div className="w-1/5 h-full border-r border-gray-300"><Nav /></div>
+        <div className="w-1/5 h-full border-r border-gray-300">
+          <Nav />
+        </div>
         <div className="w-3/5 flex flex-col items-center justify-center">
           {opponentDisplay}
           {/* Container cho EvalBar và ChessBoard */}
-          <div className="flex items-center space-x-4" style={{ height: "600px" }}>
-          <EvalBar 
-  evaluation={analysisResult ? analysisResult.playerEvaluation : 0}
-  boardFlipped={false}
-  height="100%"
-  width="20px"
-/>
+          <div
+            className="flex items-center space-x-4"
+            style={{ height: "600px" }}>
+            <EvalBar
+              evaluation={analysisResult ? analysisResult.playerEvaluation : 0}
+              boardFlipped={false}
+              height="100%"
+              width="20px"
+            />
 
-            <ChessBoard 
+            <ChessBoard
               game={game}
               handleMove={() => {}}
               orientation="white"
@@ -159,7 +186,7 @@ const AnalysisPage = () => {
         </div>
         <div className="w-1/5 border-l border-gray-300">
           {/* Sidebar với chiều cao cố định */}
-          <AnalysisSidebar 
+          <AnalysisSidebar
             moveHistory={moveHistory}
             onMoveSelect={handleMoveSelect}
             analysisResult={analysisResult}
@@ -168,7 +195,6 @@ const AnalysisPage = () => {
         </div>
       </div>
       <Footer />
-      
     </div>
   );
 };
