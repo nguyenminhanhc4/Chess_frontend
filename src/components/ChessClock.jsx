@@ -1,30 +1,55 @@
 import React, { useState, useEffect, useRef } from "react";
 
-const ChessClock = ({ initialTime, isActive, onTimeOut, playerColor }) => {
+const ChessClock = ({
+  initialTime,
+  isActive,
+  onTimeOut,
+  playerColor,
+  increment,
+}) => {
   const [time, setTime] = useState(initialTime);
   const timerRef = useRef(null);
+  const prevIsActive = useRef(isActive);
 
   useEffect(() => {
     setTime(initialTime);
-  }, [initialTime]);
+    console.log(
+      `[ChessClock ${playerColor}] initialTime updated:`,
+      initialTime
+    );
+  }, [initialTime, playerColor]);
 
   useEffect(() => {
-    // Khi đồng hồ được kích hoạt, bắt đầu đếm ngược
+    if (prevIsActive.current && !isActive) {
+      // Cộng thêm thời gian increment
+      setTime((prevTime) => prevTime + (increment || 0));
+      console.log(`[ChessClock ${playerColor}] Increment added:`, increment);
+    }
+    prevIsActive.current = isActive;
+  }, [isActive, increment, playerColor]);
+
+  useEffect(() => {
     if (isActive) {
+      console.log(`[ChessClock ${playerColor}] Starting timer.`);
       timerRef.current = setInterval(() => {
-        setTime((prev) => prev - 1);
+        setTime((prevTime) => {
+          const newTime = prevTime - 1;
+          console.log(`[ChessClock ${playerColor}] time:`, newTime);
+          return newTime;
+        });
       }, 1000);
     } else {
+      console.log(`[ChessClock ${playerColor}] Timer paused.`);
       clearInterval(timerRef.current);
     }
-
     return () => clearInterval(timerRef.current);
-  }, [isActive]);
+  }, [isActive, playerColor]);
 
   useEffect(() => {
     // Nếu đồng hồ hết thời gian
     if (time <= 0) {
       clearInterval(timerRef.current);
+      console.log(`[ChessClock ${playerColor}] Time out.`);
       onTimeOut(playerColor);
     }
   }, [time, onTimeOut, playerColor]);

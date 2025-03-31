@@ -106,6 +106,37 @@ const PvpPage = () => {
       ? getInitialTime(gameMode)
       : 300;
 
+  const getIncrement = (timeControl) => {
+    switch (timeControl) {
+      case "1+0":
+        return 0;
+      case "1+1":
+        return 1;
+      case "2+1":
+        return 1;
+      case "3+0":
+        return 0;
+      case "3+2":
+        return 2;
+      case "5+0":
+        return 0;
+      case "10+0":
+        return 0;
+      case "15+10":
+        return 10;
+      case "30+0":
+        return 0;
+      case "1d":
+        return 0;
+      case "3d":
+        return 0;
+      case "7d":
+        return 0;
+      default:
+        return 0;
+    }
+  };
+  const incrementValue = getIncrement(gameMode);
   const boardOrientation = orientation || "white";
   const playerColor = boardOrientation === "white" ? "w" : "b";
   const gameOverSentRef = useRef(false);
@@ -553,6 +584,7 @@ const PvpPage = () => {
           isActive={activeColor === (orientation === "white" ? "b" : "w")}
           onTimeOut={handleTimeOut}
           playerColor={orientation === "white" ? "b" : "w"}
+          increment={incrementValue}
         />
       </div>
     </div>
@@ -620,6 +652,7 @@ const PvpPage = () => {
           isActive={matchInfo ? activeColor === playerColor : false}
           onTimeOut={handleTimeOut}
           playerColor={playerColor}
+          increment={incrementValue}
         />
       </div>
     </div>
