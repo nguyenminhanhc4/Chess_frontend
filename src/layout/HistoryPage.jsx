@@ -65,6 +65,132 @@ const HistoryPage = () => {
     setCurrentPage(pageNumber);
   };
 
+  // Hàm render các nút phân trang với ellipsis
+  const renderPaginationButtons = () => {
+    const pages = [];
+    if (totalPages <= 7) {
+      // Hiển thị tất cả các nút nếu tổng trang <= 7
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(
+          <button
+            key={i}
+            onClick={() => goToPage(i)}
+            className={`px-3 py-1 rounded ${
+              currentPage === i
+                ? "bg-teal-800 text-white"
+                : "bg-teal-600 text-gray-200"
+            }`}>
+            {i}
+          </button>
+        );
+      }
+    } else {
+      // Nếu tổng trang > 7
+      if (currentPage <= 4) {
+        // Trang hiện tại nằm trong 4 trang đầu
+        for (let i = 1; i <= 5; i++) {
+          pages.push(
+            <button
+              key={i}
+              onClick={() => goToPage(i)}
+              className={`px-3 py-1 rounded ${
+                currentPage === i
+                  ? "bg-teal-800 text-white"
+                  : "bg-teal-600 text-gray-200"
+              }`}>
+              {i}
+            </button>
+          );
+        }
+        pages.push(
+          <span key="ellipsis1" className="px-3 py-1">
+            ...
+          </span>
+        );
+        pages.push(
+          <button
+            key={totalPages}
+            onClick={() => goToPage(totalPages)}
+            className="px-3 py-1 bg-teal-600 text-gray-200 rounded">
+            {totalPages}
+          </button>
+        );
+      } else if (currentPage > totalPages - 4) {
+        // Trang hiện tại nằm trong 4 trang cuối
+        pages.push(
+          <button
+            key={1}
+            onClick={() => goToPage(1)}
+            className="px-3 py-1 bg-teal-600 text-gray-200 rounded">
+            1
+          </button>
+        );
+        pages.push(
+          <span key="ellipsis1" className="px-3 py-1">
+            ...
+          </span>
+        );
+        for (let i = totalPages - 4; i <= totalPages; i++) {
+          pages.push(
+            <button
+              key={i}
+              onClick={() => goToPage(i)}
+              className={`px-3 py-1 rounded ${
+                currentPage === i
+                  ? "bg-teal-800 text-white"
+                  : "bg-teal-600 text-gray-200"
+              }`}>
+              {i}
+            </button>
+          );
+        }
+      } else {
+        // Trang hiện tại nằm giữa
+        pages.push(
+          <button
+            key={1}
+            onClick={() => goToPage(1)}
+            className="px-3 py-1 bg-teal-600 text-gray-200 rounded">
+            1
+          </button>
+        );
+        pages.push(
+          <span key="ellipsis1" className="px-3 py-1">
+            ...
+          </span>
+        );
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(
+            <button
+              key={i}
+              onClick={() => goToPage(i)}
+              className={`px-3 py-1 rounded ${
+                currentPage === i
+                  ? "bg-teal-800 text-white"
+                  : "bg-teal-600 text-gray-200"
+              }`}>
+              {i}
+            </button>
+          );
+        }
+        pages.push(
+          <span key="ellipsis2" className="px-3 py-1">
+            ...
+          </span>
+        );
+        pages.push(
+          <button
+            key={totalPages}
+            onClick={() => goToPage(totalPages)}
+            className="px-3 py-1 bg-teal-600 text-gray-200 rounded">
+            {totalPages}
+          </button>
+        );
+      }
+    }
+    return pages;
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[#1a202c] text-white">
       <Header />
@@ -72,12 +198,10 @@ const HistoryPage = () => {
         <div className="w-1/5 h-full border-r border-gray-700">
           <Nav />
         </div>
-
         <main className="flex-1 p-8">
           <h1 className="text-3xl font-bold mb-6 text-white">
             Lịch sử ván đấu
           </h1>
-
           {/* Bộ lọc và tìm kiếm */}
           <div className="mb-6 p-4 bg-[#2d3748] rounded-lg shadow flex flex-wrap items-end gap-4 border border-teal-400">
             <div className="flex flex-col">
@@ -175,18 +299,7 @@ const HistoryPage = () => {
                     className="px-3 py-1 bg-teal-600 rounded disabled:opacity-50">
                     Prev
                   </button>
-                  {Array.from({ length: totalPages }, (_, i) => (
-                    <button
-                      key={i + 1}
-                      onClick={() => goToPage(i + 1)}
-                      className={`px-3 py-1 rounded ${
-                        currentPage === i + 1
-                          ? "bg-teal-800 text-white"
-                          : "bg-teal-600 text-gray-200"
-                      }`}>
-                      {i + 1}
-                    </button>
-                  ))}
+                  {renderPaginationButtons()}
                   <button
                     onClick={() =>
                       currentPage < totalPages && goToPage(currentPage + 1)

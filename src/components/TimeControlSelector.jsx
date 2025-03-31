@@ -93,11 +93,6 @@ const TimeControlSelector = ({ selected, onSelect }) => {
               </div>
             </div>
           ))}
-          <div className="p-3 text-center hover:bg-gray-700 rounded-b-lg cursor-pointer">
-            <span className="text-sm text-gray-300">
-              Kiểm soát thời gian nhiều hơn
-            </span>
-          </div>
         </div>
       )}
     </div>

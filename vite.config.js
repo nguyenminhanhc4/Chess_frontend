@@ -10,4 +10,7 @@ export default defineConfig({
   optimizeDeps: {
     include: ["jwt-decode"],
   },
+  server: {
+    port: 5173, // Cấu hình port
+  },
 });

@@ -1,27 +1,38 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "./header";
 import Nav from "./nav";
 import Footer from "./footer";
+import { toast } from "react-toastify";
+import { UserAuthContext } from "../context/UserAuthContext";
 
 const HomePage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
+  const { user } = useContext(UserAuthContext);
+
+  // Hàm xử lý cho nút "Chơi với người" trong modal
+  const handleOnlinePlay = () => {
+    if (!user) {
+      toast.warn("Bạn phải đăng nhập để sử dụng tính năng này!");
+      setIsModalOpen(false);
+      navigate("/login");
+    } else {
+      setIsModalOpen(false);
+      navigate("/online");
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header */}
       <Header />
 
-      {/* Nội dung chính */}
       <div className="flex flex-grow">
         <div className="w-1/5 h-full border-r border-gray-300">
           <Nav />
         </div>
 
-        {/* Main content */}
         <main className="flex-1 p-6 bg-gray-100 max-h-screen overflow-auto">
-          {/* Hero Section */}
           <section
             className="relative bg-cover bg-center h-80 rounded-lg shadow-lg"
             style={{ backgroundImage: "url('/images/chess-hero.jpg')" }}>
@@ -42,7 +53,6 @@ const HomePage = () => {
             </div>
           </section>
 
-          {/* Các tính năng nổi bật */}
           <section className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="p-6 bg-white rounded-lg shadow-md text-center border border-gray-200">
               <h2 className="text-2xl font-bold mb-3 text-gray-900">
@@ -70,7 +80,6 @@ const HomePage = () => {
             </div>
           </section>
 
-          {/* Phần Giới Thiệu */}
           <section className="mt-10">
             <h2 className="text-3xl font-bold mb-4 text-gray-900">
               Về Chess App
@@ -86,18 +95,15 @@ const HomePage = () => {
         </main>
       </div>
 
-      {/* Footer */}
       <Footer />
 
-      {/* Popup Modal chọn chế độ chơi */}
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
           <div className="relative bg-[#1f2937] rounded-2xl p-8 max-w-md w-full shadow-2xl border border-gray-700 overflow-hidden">
-            {/* Họa tiết cờ vua làm nền (có thể là hình ảnh hoặc gradient) */}
             <div
               className="absolute inset-0 opacity-20"
               style={{
-                backgroundImage: "url('/images/chess-pattern.png')", // Bạn cần có hình này trong public/images
+                backgroundImage: "url('/images/chess-pattern.png')",
                 backgroundSize: "cover",
               }}></div>
             <div className="relative z-10">
@@ -108,16 +114,13 @@ const HomePage = () => {
                 <button
                   onClick={() => {
                     setIsModalOpen(false);
-                    navigate("/main"); // Chơi với máy
+                    navigate("/main"); // Chơi với máy, cho phép truy cập ngay cả chưa đăng nhập
                   }}
                   className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded transition-colors">
                   Chơi với máy
                 </button>
                 <button
-                  onClick={() => {
-                    setIsModalOpen(false);
-                    navigate("/online"); // Chơi với người
-                  }}
+                  onClick={handleOnlinePlay}
                   className="w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded transition-colors">
                   Chơi với người
                 </button>

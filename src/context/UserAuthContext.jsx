@@ -42,7 +42,7 @@ export const UserAuthProvider = ({ children }) => {
   };
 
   return (
-    <UserAuthContext.Provider value={{ user, updateUserFromToken }}>
+    <UserAuthContext.Provider value={{ user, setUser, updateUserFromToken }}>
       {children}
     </UserAuthContext.Provider>
   );

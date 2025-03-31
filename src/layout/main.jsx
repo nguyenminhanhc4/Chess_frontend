@@ -23,15 +23,18 @@ const MainLayout = () => {
   const [gameResult, setGameResult] = useState(null);
   // State cho độ khó của AI, mặc định "medium"
   const [difficulty, setDifficulty] = useState("medium");
-
   const { user } = useContext(UserAuthContext);
   const playerColor = orientation === "white" ? "w" : "b";
+
+  // Thêm state gameStarted: false lúc mới vào
+  const [gameStarted, setGameStarted] = useState(false);
+
   // Hàm cập nhật vị trí lên backend với chuỗi moves
   const updatePositionOnServer = async (moves) => {
     try {
       const response = await axios.post(
         "http://localhost:8080/api/engine/position",
-        moves, // Dữ liệu moves gửi trực tiếp trong body
+        moves,
         {
           headers: {
             "Content-Type": "text/plain",
@@ -100,13 +103,10 @@ const MainLayout = () => {
       // Cập nhật vị trí lên backend với chuỗi moves
       await updatePositionOnServer(movesString);
 
-      // Xác định màu người chơi dựa trên board orientation
-      const playerColor = orientation === "white" ? "w" : "b";
-      if (game.turn() !== playerColor) {
-        let engineMoveSan = await getEngineMoveFromServer(); // Ví dụ: "e2e4"
+      if (game.turn() !== (orientation === "white" ? "w" : "b")) {
+        let engineMoveSan = await getEngineMoveFromServer();
 
         if (engineMoveSan) {
-          // Áp dụng yếu tố ngẫu nhiên tùy theo độ khó
           if (difficulty === "easy" && Math.random() < 0.7) {
             const legalMoves = game.moves({ verbose: true });
             if (legalMoves.length > 0) {
@@ -127,7 +127,6 @@ const MainLayout = () => {
         }
 
         if (engineMoveSan) {
-          // Thêm delay để tạo hiệu ứng "suy nghĩ" cho AI
           setTimeout(() => {
             game.move(engineMoveSan);
             setGame(cloneGame(game));
@@ -150,9 +149,9 @@ const MainLayout = () => {
       playerUsername: user.username,
       opponent: "Bot",
       opponentType: "BOT",
-      moves: game.history({ verbose: false }).join(" "), // Lấy danh sách nước đi
+      moves: game.history({ verbose: false }).join(" "),
       finalFen: game.fen(),
-      result: result.toUpperCase(), // WIN, LOSE hoặc DRAW
+      result: result.toUpperCase(),
     };
 
     try {
@@ -201,15 +200,22 @@ const MainLayout = () => {
   };
 
   const handleHome = () => {
-    window.location.href = "/";
+    window.location.href = "/main";
   };
 
   const handleClosePopup = () => {
     setGameResult(null);
   };
 
-  const moveHistory = game.history({ verbose: true });
+  // Hàm onStartGame: khi người dùng bấm "Chơi" từ Sidebar ban đầu
+  const onStartGame = () => {
+    setGameStarted(true);
+    handleNewGame();
+  };
 
+  const moveHistoryArray = game.history({ verbose: true });
+
+  // Giả sử opponentInfo và youInfo được tính toán như cũ (cho trường hợp chơi với BOT)
   const opponentInfo = (
     <div className="flex items-center justify-center space-x-2 mb-2">
       <img
@@ -217,12 +223,7 @@ const MainLayout = () => {
         alt="Opponent"
         className="w-8 h-8 rounded-full"
       />
-      <div
-        className={`text-white px-2 py-1 rounded ${
-          game.turn() === "b" ? "bg-green-600" : "bg-gray-700"
-        }`}>
-        Bot (600)
-      </div>
+      <div className="text-white px-2 py-1 rounded bg-green-600">Bot (600)</div>
     </div>
   );
 
@@ -230,7 +231,9 @@ const MainLayout = () => {
     <div className="flex items-center justify-center space-x-2 mt-2">
       <img
         src={
-          user && user.avatar ? user.avatar : "../../public/user_default.jpg"
+          user && user.profilePicture
+            ? user.profilePicture
+            : "../../public/user_default.jpg"
         }
         alt="You"
         className="w-8 h-8 rounded-full"
@@ -259,12 +262,10 @@ const MainLayout = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-
       <div className="flex flex-grow">
         <div className="w-1/5 h-full border-r border-gray-300">
           <Nav />
         </div>
-
         <div className="w-3/5 flex flex-col items-center justify-center">
           {orientation === "white" ? (
             <>
@@ -280,10 +281,9 @@ const MainLayout = () => {
             </>
           )}
         </div>
-
         <div className="w-1/5 h-full border-l border-gray-300">
           <Sidebar
-            moveHistory={moveHistory}
+            moveHistory={moveHistoryArray}
             onSurrender={handleSurrender}
             onUndo={handleUndo}
             onRedo={handleRedo}
@@ -291,18 +291,19 @@ const MainLayout = () => {
             onNewGame={handleNewGame}
             difficulty={difficulty}
             onDifficultyChange={setDifficulty}
+            gameStarted={gameStarted}
+            onStartGame={onStartGame}
           />
         </div>
       </div>
-
       <Footer />
-
       {gameResult && (
         <GameResultPopup
           result={gameResult}
           onHome={handleHome}
-          onNewGame={handleNewGame}
+          onContinue={handleNewGame}
           onClose={handleClosePopup}
+          isPvP={false}
         />
       )}
     </div>
