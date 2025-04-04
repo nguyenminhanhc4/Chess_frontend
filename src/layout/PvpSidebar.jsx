@@ -44,6 +44,7 @@ const PvpSidebar = ({
   // Popup xác nhận cho các chức năng
   const [showConfirmSurrender, setShowConfirmSurrender] = useState(false);
   const [showConfirmNewGame, setShowConfirmNewGame] = useState(false);
+  const moveLogContainerRef = useRef(null);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -51,6 +52,13 @@ const PvpSidebar = ({
         chatContainerRef.current.scrollHeight;
     }
   }, [chatMessages]);
+
+  useEffect(() => {
+    if (moveLogContainerRef.current) {
+      moveLogContainerRef.current.scrollTop =
+        moveLogContainerRef.current.scrollHeight;
+    }
+  }, [moveHistory]);
 
   // Mảng nhóm thời gian (nếu cần dùng cho tìm trận)
   const timeControlGroups = [
@@ -197,7 +205,11 @@ const PvpSidebar = ({
           <h2 className="text-xl font-bold text-center">Biên bản</h2>
           <hr className="border-gray-600 mt-2" />
         </div>
-        <div className="flex-1 overflow-auto min-h-[240px] mb-4 custom-scrollbar">
+        <div
+          ref={moveLogContainerRef}
+          className="overflow-y-auto mb-4 custom-scrollbar"
+          style={{ maxHeight: "210px" }} // Giá trị này tùy thuộc vào chiều cao mỗi dòng
+        >
           {movePairs.length > 0 ? (
             <table className="w-full text-sm">
               <thead>

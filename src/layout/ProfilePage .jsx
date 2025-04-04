@@ -4,6 +4,17 @@ import Nav from "./nav";
 import Footer from "./footer";
 import axios from "axios";
 import { UserAuthContext } from "../context/UserAuthContext";
+import { FaSpinner, FaCamera } from "react-icons/fa";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+
+const COLORS = ["#0088FE", "#FF8042", "#00C49F"];
 
 const ProfilePage = () => {
   const { user, setUser } = useContext(UserAuthContext);
@@ -13,27 +24,67 @@ const ProfilePage = () => {
   );
   const [email, setEmail] = useState(user?.email || "");
   const [loading, setLoading] = useState(false);
+  const [uploadLoading, setUploadLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [gameStats, setGameStats] = useState(null);
 
-  // Cập nhật giá trị khi user thay đổi
   useEffect(() => {
     if (user) {
       setUsername(user.username || "");
       setProfilePicture(user.profilePicture || "");
       setEmail(user.email || "");
     }
+    fetchGameStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  // Xử lý chọn file ảnh đại diện
-  const handleFileChange = (e) => {
+  const fetchGameStats = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/game/stats/${user.username}`
+      );
+      setGameStats(response.data);
+    } catch (error) {
+      console.error("Lỗi khi lấy dữ liệu thống kê trận đấu:", error);
+    }
+  };
+
+  const data = gameStats
+    ? [
+        { name: "Thắng", value: gameStats.winRate },
+        { name: "Thua", value: gameStats.lossRate },
+        { name: "Hòa", value: gameStats.drawRate },
+      ]
+    : [];
+
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Sử dụng FileReader để chuyển file thành Data URL (Base64)
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfilePicture(reader.result);
-      };
-      reader.readAsDataURL(file);
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        setMessage(
+          "File quá lớn. Vui lòng chọn file có kích thước nhỏ hơn 5MB."
+        );
+        return;
+      }
+
+      setUploadLoading(true);
+      setMessage("");
+
+      const formData = new FormData();
+      formData.append("file", file);
+      try {
+        const response = await axios.put(
+          `http://localhost:8080/api/users/${user.id}/profile-picture`,
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+        setUser(response.data);
+        setMessage("Ảnh đại diện đã được cập nhật!");
+      } catch (error) {
+        setMessage("Có lỗi khi upload ảnh: " + error.message);
+      }
+      setUploadLoading(false);
     }
   };
 
@@ -42,58 +93,30 @@ const ProfilePage = () => {
     setLoading(true);
     setMessage("");
     try {
-      // Nếu dùng proxy trong package.json, bạn có thể dùng đường dẫn tương đối
-      // hoặc sử dụng URL tuyệt đối nếu cần
       const response = await axios.put(
-        `http://localhost:8080/api/users/${user.id}`,
-        {
-          ...user,
-          username,
-          profilePicture,
-          email,
-        }
+        `http://localhost:8080/api/game/stats/${user.username}`,
+        { ...user, username, profilePicture, email }
       );
       setUser(response.data);
       setMessage("Cập nhật hồ sơ thành công!");
     } catch (error) {
-      // Kiểm tra xem error.response có tồn tại không để hiển thị thông báo chính xác
-      const errorMsg = error.response ? error.response.data : error.message;
-      setMessage("Có lỗi xảy ra: " + errorMsg);
+      setMessage(
+        "Có lỗi xảy ra: " +
+          (error.response ? error.response.data : error.message)
+      );
     }
     setLoading(false);
-  };
-
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const formData = new FormData();
-      formData.append("file", file);
-      try {
-        const response = await axios.put(
-          `http://localhost:8080/api/users/${user.id}/profile-picture`,
-          formData,
-          {
-            headers: { "Content-Type": "multipart/form-data" },
-          }
-        );
-        // Cập nhật lại thông tin user với URL ảnh mới
-        setUser(response.data);
-        setMessage("Ảnh đại diện đã được cập nhật!");
-      } catch (error) {
-        setMessage("Có lỗi khi upload ảnh: " + error.message);
-      }
-    }
   };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Header />
-      <div className="flex flex-grow">
-        <div className="w-1/5 border-r border-gray-200">
+      <div className="flex flex-grow h-screen">
+        <div className="w-1/5 border-r border-gray-200 h-full">
           <Nav />
         </div>
-        <main className="flex-1 p-6">
-          <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8">
+        <main className="flex-1 p-6 h-full overflow-auto">
+          <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-lg p-8 mt-6">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">
               Hồ sơ cá nhân
             </h2>
@@ -104,41 +127,43 @@ const ProfilePage = () => {
               </div>
             )}
 
-            <form onSubmit={handleUpdate} className="space-y-6">
-              <div className="flex items-center space-x-6">
-                <div className="relative">
-                  <img
-                    className="w-32 h-32 rounded-full object-cover border-4 border-blue-300"
-                    src={profilePicture || "/user_default.jpg"}
-                    alt="Avatar"
-                  />
-                  <label
-                    htmlFor="fileInput"
-                    className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-2 cursor-pointer">
-                    {/* Icon chỉnh sửa */}
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor">
-                      <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
-                      <path
-                        fillRule="evenodd"
-                        d="M2 13.5A1.5 1.5 0 013.5 12h1.172l9.293-9.293a1.5 1.5 0 012.121 0l1.414 1.414a1.5 1.5 0 010 2.121L8.707 15.707a1.5 1.5 0 01-1.06.439H3.5A1.5 1.5 0 012 15.5v-2z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </label>
-                  <input
-                    id="fileInput"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
+            <div className="flex space-x-6">
+              {/* Phần thông tin và các trường input thu hẹp */}
+              <div className="w-1/2">
+                <div className="flex items-center space-x-6 mb-4">
+                  <div className="relative">
+                    {/* Avatar giữ nguyên hình tròn nhờ rounded-full */}
+                    <img
+                      className="w-32 h-32 rounded-full object-cover border-4 border-blue-300"
+                      src={profilePicture || "/user_default.jpg"}
+                      alt="Avatar"
+                    />
+                    <label
+                      htmlFor="fileInput"
+                      className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-2 cursor-pointer flex items-center justify-center">
+                      {uploadLoading ? (
+                        <FaSpinner className="animate-spin text-white w-5 h-5" />
+                      ) : (
+                        <FaCamera className="w-5 h-5" />
+                      )}
+                    </label>
+                    <input
+                      id="fileInput"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-lg font-medium">Tên: {username}</p>
+                    <p className="text-lg font-medium">Email: {email}</p>
+                    <p className="text-lg font-medium">
+                      Elo Rating: {user?.rating || 600}
+                    </p>
+                  </div>
                 </div>
-
-                <div className="flex-1 space-y-4">
+                <form onSubmit={handleUpdate} className="space-y-6">
                   <div>
                     <label
                       htmlFor="username"
@@ -150,7 +175,7 @@ const ProfilePage = () => {
                       type="text"
                       value={username || ""}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring focus:border-blue-300"
+                      className="w-64 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring focus:border-blue-300"
                       placeholder="Nhập tên người dùng"
                     />
                   </div>
@@ -165,7 +190,7 @@ const ProfilePage = () => {
                       type="email"
                       value={email || ""}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring focus:border-blue-300"
+                      className="w-64 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring focus:border-blue-300"
                       placeholder="Nhập email"
                     />
                   </div>
@@ -180,18 +205,50 @@ const ProfilePage = () => {
                       type="text"
                       value={user?.rating || 600}
                       readOnly
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-100 text-gray-600"
+                      className="w-64 border border-gray-300 rounded-lg px-4 py-2 bg-gray-100 text-gray-600"
                     />
                   </div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-64 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors flex justify-center items-center">
+                    {loading ? (
+                      <FaSpinner className="animate-spin mr-2" />
+                    ) : null}
+                    {loading ? "Đang cập nhật..." : "Cập nhật hồ sơ"}
+                  </button>
+                </form>
+              </div>
+              {/* Phần biểu đồ tích hợp bên phải */}
+              <div className="flex-1 flex items-center justify-center w-screen">
+                <div style={{ width: "300px", height: "300px" }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={data}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) =>
+                          `${name} ${(percent * 100).toFixed(0)}%`
+                        }
+                        outerRadius="80%"
+                        fill="#8884d8"
+                        dataKey="value">
+                        {data.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend verticalAlign="bottom" height={36} />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors">
-                {loading ? "Đang cập nhật..." : "Cập nhật hồ sơ"}
-              </button>
-            </form>
+            </div>
           </div>
         </main>
       </div>

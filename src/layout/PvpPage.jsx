@@ -228,6 +228,7 @@ const PvpPage = () => {
       : "Chưa có đối thủ";
     const movesHistory = game.history({ verbose: false });
     const gameData = {
+      matchId: matchInfo?.matchId,
       playerUsername: user.username,
       opponent: opponent,
       opponentType: currentMatchInfo ? "HUMAN" : "BOT",
@@ -252,32 +253,32 @@ const PvpPage = () => {
 
   useEffect(() => {
     if (game.isGameOver() && !gameSavedRef.current) {
-      let result = "";
-      const currentPlayerColor = "w";
-      if (game.isCheckmate()) {
-        result = game.turn() === currentPlayerColor ? "LOSE" : "WIN";
-      } else if (
-        game.isStalemate() ||
-        game.isInsufficientMaterial() ||
-        game.isThreefoldRepetition()
-      ) {
-        result = "DRAW";
-      } else {
-        result = "DRAW";
-      }
+      // Nếu game kết thúc do checkmate:
+      // - Nếu game.turn() (màu của người bị chiếu) trùng với playerColor thì chính client này bị chiếu và thua
+      // - Ngược lại, client này thắng.
+      let result = game.isCheckmate()
+        ? game.turn() === playerColor
+          ? "LOSE"
+          : "WIN"
+        : "DRAW";
+
       setGameResult(result);
+
       if (stompClient && stompClient.connected) {
         const payload = {
           sender: user.username,
-          matchId: matchInfo ? matchInfo.matchId : null,
-          result: result.toUpperCase(),
+          matchId: matchInfo.matchId,
+          result: result, // Gửi kết quả tính toán từ góc nhìn của client này
         };
+
         stompClient.publish({
           destination: "/app/game-over",
           body: JSON.stringify(payload),
         });
+
         console.log("Game over broadcast sent:", payload);
       }
+
       saveGameToServer(result);
       setGameSaved(true);
       gameSavedRef.current = true;
@@ -522,8 +523,13 @@ const PvpPage = () => {
         console.log("Game over event received:", payload);
         if (!gameSavedRef.current) {
           let result = payload.result;
-          if (payload.sender !== user.username && payload.result === "LOSE") {
-            result = "WIN";
+          console.log("name", user.username);
+          if (payload.sender !== user.username) {
+            if (payload.result === "WIN") {
+              result = "LOSE"; // Nếu kết quả là "WIN", đổi thành "LOSE"
+            } else if (payload.result === "LOSE") {
+              result = "WIN"; // Nếu kết quả là "LOSE", đổi thành "WIN"
+            }
           }
           setGameResult(result);
           saveGameToServer(result);

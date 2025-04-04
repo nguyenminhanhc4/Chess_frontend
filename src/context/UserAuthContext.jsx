@@ -37,6 +37,7 @@ export const UserAuthProvider = ({ children }) => {
   useEffect(() => {
     updateUserFromToken();
   }, []);
+
   UserAuthProvider.propTypes = {
     children: PropTypes.node.isRequired,
   };
