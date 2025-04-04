@@ -1,28 +1,33 @@
-import { FaGamepad, FaRobot, FaChartBar, FaHome, FaUser } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
+import {
+  FaGamepad,
+  FaRobot,
+  FaChartBar,
+  FaHome,
+  FaUser,
+  FaSignOutAlt,
+} from "react-icons/fa";
+import { Link } from "react-router-dom";
 import { useContext } from "react";
 import { toast } from "react-toastify";
 import { UserAuthContext } from "../context/UserAuthContext";
 import ProtectedLink from "./ProtectedLink"; // Đảm bảo đường dẫn chính xác
-
+import { getSessionId } from "../utils/session";
 const Nav = () => {
-  const { user } = useContext(UserAuthContext);
-  const navigate = useNavigate();
+  const { user, updateUserFromToken } = useContext(UserAuthContext);
 
-  // Hàm xử lý cho các đường dẫn cần đăng nhập
-  const handleProtectedClick = (e, path) => {
-    if (!user) {
-      e.preventDefault();
-      toast.warn("Bạn phải đăng nhập để sử dụng tính năng này!");
-      navigate("/login");
-    }
+  const handleLogout = () => {
+    const sessionId = getSessionId();
+    const tokenKey = "authToken_" + sessionId;
+    localStorage.removeItem(tokenKey);
+    updateUserFromToken();
+    toast.success("Đã đăng xuất thành công");
   };
 
   return (
     <nav className="min-h-screen bg-gray-700 text-white p-6 w-full flex flex-col justify-between">
       <div>
         {/* Logo và tiêu đề */}
-        <div className="flex flex-col items-start mb-8">
+        <div className="flex flex-col items-start">
           <div className="flex items-center space-x-1">
             <div className="w-16 h-16 rounded-full overflow-hidden">
               <img
@@ -36,19 +41,41 @@ const Nav = () => {
         </div>
 
         {/* Nếu đã đăng nhập thì hiển thị thông tin người dùng */}
-        {user && (
-          <div className="flex items-center space-x-2 mb-8">
-            <img
-              src={user.profilePicture || "/user_default.jpg"}
-              alt="Avatar"
-              className="w-10 h-10 rounded-full border-2 border-blue-300"
-            />
-            <div>
-              <div className="font-semibold">{user.username}</div>
-              <div className="text-sm text-gray-200">
-                Rating: {user.rating ?? 600}
+        {user ? (
+          // Block ĐÃ đăng nhập - Giữ nguyên height
+          <div className="mb-4 h-24">
+            {" "}
+            {/* Fixed height */}
+            <div className="flex items-center space-x-3 h-full">
+              {" "}
+              {/* Full height container */}
+              <img
+                src={user.profilePicture || "/user_default.jpg"}
+                alt="Avatar"
+                className="w-14 h-14 rounded-full border-2 border-blue-400 shrink-0"
+              />
+              <div className="flex flex-col justify-center min-w-0">
+                <div className="font-semibold text-lg truncate">
+                  {user.username}
+                </div>
+                <div className="text-sm text-gray-300">
+                  Rating:{" "}
+                  <span className="text-yellow-400">{user.rating ?? 600}</span>
+                </div>
               </div>
             </div>
+          </div>
+        ) : (
+          // Block CHƯA đăng nhập - Thêm mới
+          <div className="mb-4 h-24 flex items-center">
+            <Link
+              to="/login"
+              className="w-full p-4 bg-gray-600 hover:bg-gray-500 rounded-lg transition-colors flex items-center space-x-3">
+              <FaUser className="text-2xl text-blue-400" />
+              <span className="font-medium text-blue-300 hover:text-blue-200">
+                Đăng nhập để chơi cờ!
+              </span>
+            </Link>
           </div>
         )}
 
@@ -94,10 +121,18 @@ const Nav = () => {
               Hồ sơ
             </ProtectedLink>
           </li>
+          {user && (
+            <li
+              className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-600 cursor-pointer"
+              onClick={handleLogout}>
+              <FaSignOutAlt className="text-red-400" />
+              <span className="text-red-400 hover:text-red-300">Đăng xuất</span>
+            </li>
+          )}
         </ul>
       </div>
 
-      <div className="mt-8">
+      <div className="text-center">
         <hr className="border-gray-600 mb-4" />
         <div className="text-sm text-gray-300">© 2025 Chess App</div>
       </div>

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  background-color: #302e2b; /* Màu vàng nhạt */
+  background-color: #302e2b;
 }
 
 /* Dành cho Chrome, Safari, Opera */
@@ -65,4 +65,57 @@ body {
   width: 2px;
   height: 16px;
   background: #ff0000;
+}
+
+.alert-enter {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+.alert-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 300ms;
+}
+.alert-exit {
+  opacity: 1;
+}
+.alert-exit-active {
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: all 300ms;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }

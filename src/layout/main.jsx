@@ -1,9 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { Chess } from "chess.js";
-import Header from "./header";
 import Nav from "./nav";
 import Sidebar from "./sidebar";
-import Footer from "./footer";
 import ChessBoard from "../components/chessboard";
 import GameResultPopup from "./GameResultPopup";
 import { UserAuthContext } from "../context/UserAuthContext";
@@ -261,7 +259,6 @@ const MainLayout = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
       <div className="flex flex-grow">
         <div className="w-1/5 h-full border-r border-gray-300">
           <Nav />
@@ -296,7 +293,6 @@ const MainLayout = () => {
           />
         </div>
       </div>
-      <Footer />
       {gameResult && (
         <GameResultPopup
           result={gameResult}

@@ -1,8 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import axios from "axios";
-import Header from "./header";
 import Nav from "./nav";
-import Footer from "./footer";
 import { UserAuthContext } from "../context/UserAuthContext";
 import { Chessboard } from "react-chessboard";
 import { FaSearch } from "react-icons/fa";
@@ -193,7 +191,6 @@ const HistoryPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#1a202c] text-white">
-      <Header />
       <div className="flex flex-grow">
         <div className="w-1/5 h-full border-r border-gray-700">
           <Nav />
@@ -333,7 +330,6 @@ const HistoryPage = () => {
           </div>
         </main>
       </div>
-      <Footer />
     </div>
   );
 };

@@ -2,10 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { Chess } from "chess.js";
-import Header from "./header";
 import Nav from "./nav";
 import AnalysisSidebar from "./AnalysisSidebar";
-import Footer from "./footer";
 import ChessBoard from "../components/chessboard";
 import EvalBar from "../components/EvalBar";
 
@@ -156,7 +154,6 @@ const AnalysisPage = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
       <div className="flex flex-grow">
         <div className="w-1/5 h-full border-r border-gray-300">
           <Nav />
@@ -194,7 +191,6 @@ const AnalysisPage = () => {
           />
         </div>
       </div>
-      <Footer />
     </div>
   );
 };
