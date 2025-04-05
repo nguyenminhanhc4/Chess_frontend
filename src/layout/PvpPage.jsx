@@ -8,13 +8,6 @@ import { UserAuthContext } from "../context/UserAuthContext";
 import axios from "axios";
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
-import {
-  FaSpinner,
-  FaTimes,
-  FaCommentAlt,
-  FaArrowLeft,
-  FaSearch,
-} from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ChessClock from "../components/ChessClock";
@@ -571,7 +564,7 @@ const PvpPage = () => {
             : matchInfo.white}
         </div>
       </div>
-      <div className="text-xl font-bold text-yellow-400">
+      <div className="text-xl font-bold text-yellow-400 min-w-[120px] text-center bg-gray-900 px-4 py-2 rounded-lg shadow-lg">
         {console.log(
           "Opponent ChessClock props:",
           "initialTime:",
@@ -637,9 +630,9 @@ const PvpPage = () => {
         </div>
       </div>
       <div
-        className={`text-xl font-bold ${
-          matchInfo ? "text-yellow-400" : "text-white"
-        }`}>
+        className={
+          "text-xl font-bold text-yellow-400 min-w-[120px] text-center bg-gray-900 px-4 py-2 rounded-lg shadow-lg"
+        }>
         {console.log(
           "Your ChessClock props:",
           "initialTime:",
@@ -676,16 +669,16 @@ const PvpPage = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="flex flex-grow">
-        <div className="w-1/5 h-full border-r border-gray-300">
+      <div className="flex flex-grow flex-col lg:flex-row">
+        <div className="lg:w-1/5 h-auto lg:h-full border-r border-gray-300">
           <Nav />
         </div>
-        <div className="w-3/5 flex flex-col items-center justify-center">
+        <div className="flex-1 flex flex-col items-center justify-center min-h-[70vh]">
           {opponentInfo}
           {boardBlock}
           {youInfo}
         </div>
-        <div className="w-1/5 h-full border-l border-gray-300">
+        <div className="lg:w-1/5 h-auto lg:h-full border-l border-gray-300">
           <Sidebar
             moveHistory={moveHistoryVerbose}
             onSurrender={handleSurrender}
@@ -710,6 +703,12 @@ const PvpPage = () => {
           onHome={handleHome}
           onClose={handleClosePopup}
           isPvP={true}
+          opponentName={
+            opponentData?.username ||
+            (matchInfo?.white === user?.username
+              ? matchInfo?.black
+              : matchInfo?.white)
+          }
         />
       )}
     </div>

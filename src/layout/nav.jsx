@@ -71,7 +71,6 @@ const Nav = () => {
             <Link
               to="/login"
               className="w-full p-4 bg-gray-600 hover:bg-gray-500 rounded-lg transition-colors flex items-center space-x-3">
-              <FaUser className="text-2xl text-blue-400" />
               <span className="font-medium text-blue-300 hover:text-blue-200">
                 Đăng nhập để chơi cờ!
               </span>

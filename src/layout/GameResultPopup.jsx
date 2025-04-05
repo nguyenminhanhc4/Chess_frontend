@@ -1,58 +1,97 @@
 import PropTypes from "prop-types";
-import { GiChessKing } from "react-icons/gi";
+import { GiChessKing, GiTrophy, GiSwordsEmblem } from "react-icons/gi";
+import { motion, AnimatePresence } from "framer-motion";
 
 const GameResultPopup = ({
   result,
-  onHome, // Dành cho nút "Ván mới": quay về trang main để chọn lại độ khó
-  onContinue, // Dành cho PvE: tạo ván mới với độ khó hiện tại ("Chơi tiếp")
+  onHome,
+  onContinue,
   isPvP,
+  opponentName,
 }) => {
+  const resultConfig = {
+    WIN: {
+      gradient: "from-emerald-600 to-green-800",
+      icon: <GiTrophy className="text-4xl text-yellow-400" />,
+      title: "Chiến Thắng!",
+    },
+    LOSE: {
+      gradient: "from-rose-600 to-red-800",
+      icon: <GiSwordsEmblem className="text-4xl text-red-400" />,
+      title: "Thất Bại",
+    },
+    DRAW: {
+      gradient: "from-amber-600 to-yellow-800",
+      icon: <GiChessKing className="text-4xl text-blue-400" />,
+      title: "Hòa",
+    },
+  };
+
+  const currentConfig = resultConfig[result] || resultConfig.DRAW;
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 animate-fadeIn">
-      <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-2xl shadow-2xl w-80 md:w-96 flex flex-col items-center backdrop-blur-sm border border-gray-700">
-        {/* Icon vua cờ */}
-        <div className="absolute -top-8">
-          <GiChessKing className="text-6xl text-indigo-500 drop-shadow-lg" />
-        </div>
-        <h2 className="mt-6 text-2xl font-bold text-white">
-          Ván Cờ Kết Thúc {isPvP ? "(PvP)" : "(PvE)"}
-        </h2>
-        <p className="mt-4 text-lg text-center text-gray-300">{result}</p>
-        {isPvP ? (
-          // Giao diện cho PvP: 2 nút "Trang chủ" và "Ván mới"
-          <div className="mt-6 flex space-x-4">
-            <button
-              onClick={onHome}
-              className="px-5 py-2 bg-indigo-600 text-white font-medium rounded-full hover:bg-indigo-700 transition-all duration-200 transform hover:scale-105">
-              Ván mới
-            </button>
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
+        animate={{ opacity: 1, backdropFilter: "blur(8px)" }}
+        exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
+        className="fixed inset-0 flex items-center justify-center bg-black/60">
+        <motion.div
+          initial={{ scale: 0.8, y: 50 }}
+          animate={{ scale: 1, y: 0 }}
+          className={`relative bg-gradient-to-br ${currentConfig.gradient} p-8 rounded-2xl shadow-2xl w-11/12 max-w-md border-2 border-white/10 space-y-6`}>
+          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
+            <motion.div
+              animate={{ rotate: 360, scale: [1, 1.2, 1] }}
+              transition={{ duration: 1.5, repeat: Infinity }}>
+              {currentConfig.icon}
+            </motion.div>
           </div>
-        ) : (
-          // Giao diện cho PvE: nút "Ván mới" (chọn lại độ khó) và nút "Chơi tiếp" (tiếp tục với độ khó hiện tại)
-          <div className="mt-6 flex space-x-4">
-            <button
-              onClick={onHome}
-              className="px-5 py-2 bg-indigo-600 text-white font-medium rounded-full hover:bg-indigo-700 transition-all duration-200 transform hover:scale-105">
-              Ván mới
-            </button>
-            <button
-              onClick={onContinue}
-              className="px-5 py-2 bg-indigo-600 text-white font-medium rounded-full hover:bg-indigo-700 transition-all duration-200 transform hover:scale-105">
-              Chơi tiếp
-            </button>
+
+          <div className="text-center space-y-4">
+            <h2 className="text-2xl font-bold text-white">
+              {isPvP ? `Đấu với ${opponentName}` : "Chế độ Máy"}
+            </h2>
+            <p className="text-4xl font-extrabold text-white uppercase tracking-wider">
+              {currentConfig.title}
+            </p>
           </div>
-        )}
-      </div>
-    </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onHome}
+              className="p-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-all">
+              <GiChessKing />
+              <span>{isPvP ? "Ván Mới" : "Độ Khó Mới"}</span>
+            </motion.button>
+
+            {!isPvP && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={onContinue}
+                className="p-3 bg-blue-600/90 hover:bg-blue-700 text-white rounded-xl font-medium flex items-center justify-center gap-2">
+                <GiSwordsEmblem />
+                <span>Thử Lại</span>
+              </motion.button>
+            )}
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 };
 
 GameResultPopup.propTypes = {
-  result: PropTypes.string.isRequired,
+  result: PropTypes.oneOf(["WIN", "LOSE", "DRAW"]).isRequired,
   onHome: PropTypes.func.isRequired,
-  onNewGame: PropTypes.func, // Dành cho PvP
-  onContinue: PropTypes.func, // Dành cho PvE
-  isPvP: PropTypes.bool, // Nếu là true => PvP, nếu false hoặc không có => PvE
+  onContinue: PropTypes.func,
+  isPvP: PropTypes.bool,
+  moveCount: PropTypes.number,
+  gameDuration: PropTypes.string,
+  opponentName: PropTypes.string,
 };
 
 export default GameResultPopup;

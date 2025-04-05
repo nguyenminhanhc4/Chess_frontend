@@ -119,3 +119,9 @@ body {
     opacity: 1;
   }
 }
+
+@media (max-width: 768px) {
+  .rotate-for-mobile {
+    transform: none !important; /* Tắt xoay bàn cờ trên mobile */
+  }
+}

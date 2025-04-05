@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Nav from "./nav";
 import { toast } from "react-toastify";
 import { UserAuthContext } from "../context/UserAuthContext";
-import { HiUserGroup, HiChip, HiChartBar, HiUser, HiX } from "react-icons/hi";
+import { HiUserGroup, HiChip, HiChartBar, HiUser } from "react-icons/hi";
 import { FiX } from "react-icons/fi";
 
 const HomePage = () => {
@@ -39,7 +39,7 @@ const HomePage = () => {
           <Nav />
         </div>
 
-        <main className="flex-1 p-6 bg-gray-100 max-h-screen overflow-auto">
+        <main className="flex-1 pt-3 px-6 bg-gray-100 max-h-screen overflow-auto">
           <section
             className="relative bg-cover bg-center h-80 rounded-lg shadow-lg"
             style={{ backgroundImage: "url('/images/chess-hero.jpg')" }}>
@@ -60,7 +60,7 @@ const HomePage = () => {
             </div>
           </section>
 
-          <section className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <section className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Thẻ Chơi trực tuyến */}
             <div
               className="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2 group border border-gray-200 cursor-pointer"

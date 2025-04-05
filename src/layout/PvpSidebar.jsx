@@ -151,11 +151,13 @@ const PvpSidebar = ({
                       setSelectedTimeValue(item.value);
                       setGameMode(item.value); // Cập nhật gameMode toàn cục
                     }}
-                    className={`p-2 rounded text-sm transition-colors ${
-                      selectedTimeValue === item.value
-                        ? "bg-green-600"
-                        : "bg-gray-700 hover:bg-gray-600"
-                    }`}>
+                    className={`p-2 rounded-lg text-sm font-medium transition-all duration-200 
+                      ${
+                        selectedTimeValue === item.value
+                          ? "bg-green-600 ring-2 ring-green-400"
+                          : "bg-gray-700 hover:bg-gray-600 hover:ring-1 hover:ring-gray-400"
+                      }
+                      `}>
                     {item.label}
                   </button>
                 ))}
@@ -236,7 +238,7 @@ const PvpSidebar = ({
         <div className="flex flex-col space-y-2 mb-4">
           <button
             onClick={() => setShowConfirmSurrender(true)}
-            className="w-full flex items-center justify-center space-x-2 p-2 bg-red-500 hover:bg-red-600 rounded">
+            className="w-full flex items-center justify-center space-x-2 p-2 bg-red-500 hover:bg-red-600 rounded-lg transform hover:scale-[1.02] transition-all duration-200 active:scale-95">
             <FaHandPaper />
             <span>Đầu hàng</span>
           </button>
@@ -248,7 +250,7 @@ const PvpSidebar = ({
               }
               onRequestDraw();
             }}
-            className="w-full flex items-center justify-center space-x-2 p-2 bg-yellow-500 hover:bg-yellow-600 rounded">
+            className="w-full flex items-center justify-center space-x-2 p-2 bg-yellow-500 hover:bg-yellow-600 rounded-lg transform hover:scale-[1.02] transition-all duration-200 active:scale-95">
             <FaHandshake />
             <span>Xin hòa</span>
           </button>
@@ -259,10 +261,16 @@ const PvpSidebar = ({
           </h3>
           <div
             ref={chatContainerRef}
-            className="flex-1 overflow-auto mb-2 p-2 bg-gray-700 rounded h-40">
+            className="flex-1 overflow-auto mb-2 p-2 bg-gray-700 rounded-lg h-48 scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-800">
             {chatMessages && chatMessages.length > 0 ? (
               chatMessages.map((msg, index) => (
-                <div key={index} className="mb-1 flex items-center">
+                <div
+                  key={index}
+                  className={`mb-2 p-2 rounded-lg ${
+                    msg.sender === currentUser
+                      ? "bg-blue-800 ml-4"
+                      : "bg-gray-600 mr-4"
+                  } transition-all duration-200`}>
                   <span className="font-bold">{msg.sender}:</span>{" "}
                   <span>{msg.text}</span>
                   {/* Nếu tin nhắn là yêu cầu hòa từ đối thủ, hiển thị 2 icon tick và X */}
@@ -316,7 +324,7 @@ const PvpSidebar = ({
   };
 
   return (
-    <aside className="min-h-screen bg-gray-800 text-white p-4 w-full flex flex-col">
+    <aside className="min-h-screen bg-gradient-to-br from-gray-800 to-gray-900 shadow-xl text-white p-4 w-full flex flex-col">
       {matchInfo ? renderInMatchView() : renderPreMatchView()}
       {/* Popup xác nhận đầu hàng */}
       {showConfirmSurrender && (

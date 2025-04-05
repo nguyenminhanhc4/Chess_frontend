@@ -33,11 +33,12 @@ const Sidebar = ({
         <div className="flex flex-col space-y-4 w-full max-w-xs">
           <button
             onClick={() => onDifficultyChange("easy")}
-            className={`py-3 rounded-lg text-lg font-medium transition-colors ${
+            className={`text-sm md:text-base py-3 md:py-2 rounded-lg font-medium transition-colors ${
               difficulty === "easy"
                 ? "bg-green-500 shadow-lg"
                 : "bg-gray-700 hover:bg-gray-600"
-            }`}>
+            }`}
+            title="AI sẽ đi ngẫu nhiên 70% số nước">
             <div className="flex items-center justify-center">
               <FaChessPawn className="mr-2" />
               <span>Dễ</span>
@@ -45,11 +46,12 @@ const Sidebar = ({
           </button>
           <button
             onClick={() => onDifficultyChange("medium")}
-            className={`py-3 rounded-lg text-lg font-medium transition-colors ${
+            className={`text-sm md:text-base py-3 md:py-2 rounded-lg font-medium transition-colors ${
               difficulty === "medium"
                 ? "bg-yellow-500 shadow-lg"
                 : "bg-gray-700 hover:bg-gray-600"
-            }`}>
+            }`}
+            title="AI sẽ đi ngẫu nhiên 50% số nước">
             <div className="flex items-center justify-center">
               <FaChessKnight className="mr-2" />
               <span>Trung bình</span>
@@ -57,11 +59,12 @@ const Sidebar = ({
           </button>
           <button
             onClick={() => onDifficultyChange("hard")}
-            className={`py-3 rounded-lg text-lg font-medium transition-colors ${
+            className={`text-sm md:text-base py-3 md:py-2 rounded-lg font-medium transition-colors ${
               difficulty === "hard"
                 ? "bg-red-500 shadow-lg"
                 : "bg-gray-700 hover:bg-gray-600"
-            }`}>
+            }`}
+            title="AI sẽ đi nước đi tốt nhất 100% số nước">
             <div className="flex items-center justify-center">
               <FaChessQueen className="mr-2" />
               <span>Khó</span>
@@ -166,7 +169,7 @@ const Sidebar = ({
       </div>
 
       {/* Bảng lịch sử nước đi */}
-      <div className="flex-1 overflow-auto max-h-[450px] mb-6 custom-scrollbar">
+      <div className="flex-1 overflow-auto max-h-[30vh] md:max-h-[450px]">
         {movePairs.length > 0 ? (
           <table className="w-full text-sm">
             <thead>
@@ -178,7 +181,9 @@ const Sidebar = ({
             </thead>
             <tbody>
               {movePairs.map((pair) => (
-                <tr key={pair.moveNumber} className="hover:bg-gray-600">
+                <tr
+                  key={pair.moveNumber}
+                  className="hover:bg-gray-600 even:bg-gray-700">
                   <td className="px-2 py-1">{pair.moveNumber}.</td>
                   <td className="px-2 py-1">{pair.white}</td>
                   <td className="px-2 py-1">{pair.black}</td>
@@ -195,26 +200,28 @@ const Sidebar = ({
       <div className="flex flex-col space-y-3">
         <button
           onClick={onUndo}
-          className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-md shadow">
+          title="Hoàn tác nước đi cuối cùng"
+          className="text-sm md:text-base py-1 md:py-2 w-full flex items-center justify-center space-x-2 px-4 bg-blue-500 hover:bg-blue-600 rounded-md shadow hover:scale-105 transition-transform">
           <FaUndo size={18} />
           <span>Lùi lại</span>
         </button>
         <button
           onClick={onRedo}
-          className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-500 hover:bg-green-600 rounded-md shadow">
+          title="Hoàn tác lại nước đi đã hoàn tác"
+          className="text-sm md:text-base py-1 md:py-2 w-full flex items-center justify-center space-x-2 px-4 bg-green-500 hover:bg-green-600 rounded-md shadow hover:scale-105 transition-transform">
           <FaRedo size={18} />
           <span>Tiến tới</span>
         </button>
         <button
           onClick={() => setShowConfirmNewGame(true)}
-          className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 rounded-md shadow"
+          className="text-sm md:text-base py-1 md:py-2 w-full flex items-center justify-center space-x-2 px-4 bg-purple-500 hover:bg-purple-600 rounded-md shadow hover:scale-105 transition-transform"
           title="Ván mới">
           <FaPlus size={18} />
           <span>Ván mới</span>
         </button>
         <button
           onClick={() => setShowConfirmSurrender(true)}
-          className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-red-500 hover:bg-red-600 rounded-md shadow">
+          className="text-sm md:text-base py-1 md:py-2 w-full flex items-center justify-center space-x-2 px-4 bg-red-500 hover:bg-red-600 rounded-md shadow hover:scale-105 transition-transform">
           <FaHandPaper size={18} />
           <span>Đầu hàng</span>
         </button>

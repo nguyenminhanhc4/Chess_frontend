@@ -17,7 +17,7 @@ const cloneGame = (gameInstance) => {
 const MainLayout = () => {
   const [game, setGame] = useState(new Chess());
   const [redoStack, setRedoStack] = useState([]);
-  const [orientation] = useState("white");
+  const [orientation, setOrientation] = useState("white");
   const [gameResult, setGameResult] = useState(null);
   // State cho độ khó của AI, mặc định "medium"
   const [difficulty, setDifficulty] = useState("medium");
@@ -69,7 +69,6 @@ const MainLayout = () => {
   useEffect(() => {
     if (game.isGameOver()) {
       let result = "";
-      const playerColor = "w";
       if (game.isCheckmate()) {
         result = game.turn() === playerColor ? "LOSE" : "WIN";
       } else if (game.isStalemate()) {
@@ -85,7 +84,7 @@ const MainLayout = () => {
       setGameResult(result);
       saveGameToServer(result);
     }
-  }, [game]);
+  }, [game, playerColor]);
 
   // Xử lý nước đi mới, tích hợp gọi API backend
   const handleMove = async (from, to, promotion = null) => {
@@ -101,7 +100,7 @@ const MainLayout = () => {
       // Cập nhật vị trí lên backend với chuỗi moves
       await updatePositionOnServer(movesString);
 
-      if (game.turn() !== (orientation === "white" ? "w" : "b")) {
+      if (game.turn() !== playerColor) {
         let engineMoveSan = await getEngineMoveFromServer();
 
         if (engineMoveSan) {
@@ -206,9 +205,51 @@ const MainLayout = () => {
   };
 
   // Hàm onStartGame: khi người dùng bấm "Chơi" từ Sidebar ban đầu
-  const onStartGame = () => {
+  const onStartGame = async () => {
+    // Random chọn hướng: nếu là "black" thì người chơi là đen, AI là trắng
+    const randomOrientation = Math.random() < 0.5 ? "white" : "black";
+    setOrientation(randomOrientation);
     setGameStarted(true);
-    handleNewGame();
+
+    // Khởi tạo game mới
+    const newGame = new Chess();
+    setGame(newGame);
+    setRedoStack([]);
+    setGameResult(null);
+
+    // Nếu người chơi là quân đen, AI (quân trắng) sẽ đi đầu tiên
+    if (randomOrientation === "black") {
+      // Lấy nước đi từ API engine
+      let engineMoveSan = await getEngineMoveFromServer();
+      // Áp dụng logic random theo độ khó (tương tự trong handleMove)
+      if (engineMoveSan) {
+        if (difficulty === "easy" && Math.random() < 0.7) {
+          const legalMoves = newGame.moves({ verbose: true });
+          if (legalMoves.length > 0) {
+            const randomMove =
+              legalMoves[Math.floor(Math.random() * legalMoves.length)];
+            engineMoveSan = randomMove.from + randomMove.to;
+            console.log("Easy mode random move (first move):", engineMoveSan);
+          }
+        } else if (difficulty === "medium" && Math.random() < 0.5) {
+          const legalMoves = newGame.moves({ verbose: true });
+          if (legalMoves.length > 0) {
+            const randomMove =
+              legalMoves[Math.floor(Math.random() * legalMoves.length)];
+            engineMoveSan = randomMove.from + randomMove.to;
+            console.log("Medium mode random move (first move):", engineMoveSan);
+          }
+        }
+      }
+
+      // Nếu có nước đi hợp lệ từ engine, thực hiện nước đi sau 800ms
+      if (engineMoveSan) {
+        setTimeout(() => {
+          newGame.move(engineMoveSan);
+          setGame(cloneGame(newGame));
+        }, 800);
+      }
+    }
   };
 
   const moveHistoryArray = game.history({ verbose: true });
@@ -219,9 +260,14 @@ const MainLayout = () => {
       <img
         src="../../public/robo_icon.jpg"
         alt="Opponent"
-        className="w-8 h-8 rounded-full"
+        className="w-6 h-6 md:w-8 md:h-8 rounded-full"
       />
-      <div className="text-white px-2 py-1 rounded bg-green-600">Bot (600)</div>
+      <div
+        className={`text-white px-2 py-1 rounded ${
+          game.turn() !== playerColor ? "bg-green-600" : "bg-gray-700"
+        }`}>
+        Bot (600)
+      </div>
     </div>
   );
 
@@ -234,11 +280,11 @@ const MainLayout = () => {
             : "../../public/user_default.jpg"
         }
         alt="You"
-        className="w-8 h-8 rounded-full"
+        className="w-6 h-6 md:w-8 md:h-8 rounded-full"
       />
       <div
         className={`text-white px-2 py-1 rounded ${
-          game.turn() === "w" ? "bg-green-600" : "bg-gray-700"
+          game.turn() === playerColor ? "bg-green-600" : "bg-gray-700"
         }`}>
         {user ? `${user.username} (${user.rating ?? "N/A"})` : "User (600)"}
       </div>
@@ -246,39 +292,41 @@ const MainLayout = () => {
   );
 
   const boardBlock = (
-    <div className="flex items-center">
-      <ChessBoard
-        game={game}
-        handleMove={handleMove}
-        orientation={orientation}
-        playerColor={playerColor}
-        transitionDuration={500}
-      />
+    <div className="flex items-center justify-center w-full p-4">
+      <div
+        className="relative"
+        style={{ maxWidth: "95vw", aspectRatio: "1/1" }}>
+        <ChessBoard
+          game={game}
+          handleMove={handleMove}
+          orientation={orientation}
+          playerColor={playerColor}
+          transitionDuration={500}
+          style={{
+            transform: orientation === "black" ? "rotate(180deg)" : "none",
+            transition: "transform 0.3s ease",
+            width: "100%",
+            height: "100%",
+          }}
+        />
+      </div>
     </div>
   );
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="flex flex-grow">
-        <div className="w-1/5 h-full border-r border-gray-300">
+      <div className="flex flex-grow flex-col md:flex-row">
+        <div className="w-full md:w-1/5 h-16 md:h-full border-b md:border-r border-gray-300">
           <Nav />
         </div>
-        <div className="w-3/5 flex flex-col items-center justify-center">
-          {orientation === "white" ? (
-            <>
-              {opponentInfo}
-              {boardBlock}
-              {youInfo}
-            </>
-          ) : (
-            <>
-              {youInfo}
-              {boardBlock}
-              {opponentInfo}
-            </>
-          )}
+        <div className="w-full md:w-3/5 flex flex-col items-center justify-center">
+          <>
+            {opponentInfo}
+            {boardBlock}
+            {youInfo}
+          </>
         </div>
-        <div className="w-1/5 h-full border-l border-gray-300">
+        <div className="w-full md:w-1/5 h-full border-t md:border-l border-gray-300">
           <Sidebar
             moveHistory={moveHistoryArray}
             onSurrender={handleSurrender}

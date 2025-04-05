@@ -227,11 +227,11 @@ const HistoryPage = () => {
           </div>
 
           {/* Container: bảng danh sách và preview bàn cờ */}
-          <div className="flex bg-[#2d3748] rounded-lg shadow overflow-hidden">
+          <div className="flex flex-col lg:flex-row bg-[#2d3748] rounded-lg shadow overflow-hidden">
             {/* Bảng danh sách ván đấu */}
-            <div className="w-3/5 overflow-auto">
-              <table className="min-w-full table-auto divide-y divide-gray-700 border-collapse">
-                <thead className="bg-teal-600">
+            <div className="w-full lg:w-3/5 overflow-auto p-2">
+              <table className="min-w-full table-fixed">
+                <thead className="bg-teal-600 hidden lg:table-header-group">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                       Ngày
@@ -310,7 +310,7 @@ const HistoryPage = () => {
             </div>
 
             {/* Cột preview bàn cờ */}
-            <div className="w-2/5 p-4 border-l border-gray-700 flex flex-col items-center justify-center">
+            <div className="w-full lg:w-2/5 p-4 border-t lg:border-l border-gray-700">
               {hoveredGame ? (
                 <div>
                   <Chessboard
