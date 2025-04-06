@@ -1,30 +1,51 @@
 import { useState, useContext } from "react";
 import axios from "axios";
 import { GiChessKing } from "react-icons/gi";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
-import { UserAuthContext } from "../context/UserAuthContext"; // Thêm import context
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { UserAuthContext } from "../context/UserAuthContext";
 import { getSessionId } from "../utils/session";
+import { SwitchTransition, CSSTransition } from "react-transition-group";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Login = () => {
-  const navigate = useNavigate(); // Khởi tạo navigate
-  const { updateUserFromToken } = useContext(UserAuthContext); // Lấy hàm cập nhật context
+  const navigate = useNavigate();
+  const { updateUserFromToken } = useContext(UserAuthContext);
 
-  // State để theo dõi xem hiển thị form đăng nhập hay đăng ký
+  // State management
   const [isLogin, setIsLogin] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // State cho form đăng nhập
+  // Login form states
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
-  // State cho form đăng ký
+  // Register form states
   const [registerUsername, setRegisterUsername] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState("");
 
-  // Xử lý submit cho form đăng nhập
+  // Reset form khi chuyển đổi
+  const switchForm = (isLoginForm) => {
+    setIsLogin(isLoginForm);
+    setError("");
+    setLoginEmail("");
+    setLoginPassword("");
+    setRegisterUsername("");
+    setRegisterEmail("");
+    setRegisterPassword("");
+    setRegisterConfirmPassword("");
+  };
+
+  // Xử lý đăng nhập
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
       const response = await axios.post(
         "http://localhost:8080/api/auth/login",
@@ -33,59 +54,45 @@ const Login = () => {
           password: loginPassword,
         }
       );
-      console.log("Đăng nhập thành công:", response.data);
 
-      // Lấy sessionId và tạo key lưu token dựa trên sessionId
       const sessionId = getSessionId();
-      const tokenKey = "authToken_" + sessionId;
-
-      // Lưu token vào localStorage với key có chứa sessionId
-      localStorage.setItem(tokenKey, response.data.token);
-
-      // Cập nhật context để lấy thông tin user
+      localStorage.setItem(`authToken_${sessionId}`, response.data.token);
       updateUserFromToken();
-
-      // Chuyển hướng đến trang chính
       navigate("/");
     } catch (error) {
-      console.error(
-        "Lỗi đăng nhập:",
-        error.response ? error.response.data : error.message
-      );
-      alert("Đăng nhập thất bại!");
+      setError(error.response?.data?.message || "Đăng nhập thất bại!");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Xử lý submit cho form đăng ký
+  // Xử lý đăng ký
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
-    if (registerPassword !== registerConfirmPassword) {
-      alert("Mật khẩu nhập lại không khớp!");
-      return;
-    }
+    setIsSubmitting(true);
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/auth/register",
-        {
-          username: registerUsername,
-          email: registerEmail,
-          password: registerPassword,
-          confirmPassword: registerConfirmPassword,
-        }
-      );
-      console.log("Đăng ký thành công:", response.data);
-      alert("Đăng ký thành công! Hãy đăng nhập.");
-      setIsLogin(true);
+      if (registerPassword !== registerConfirmPassword) {
+        throw new Error("Mật khẩu nhập lại không khớp!");
+      }
+
+      await axios.post("http://localhost:8080/api/auth/register", {
+        username: registerUsername,
+        email: registerEmail,
+        password: registerPassword,
+        confirmPassword: registerConfirmPassword,
+      });
+
+      setError(""); // Clear error nếu thành công
+      toast.success("Đăng ký thành công! Hãy đăng nhập.");
+      switchForm(true);
     } catch (error) {
-      console.error(
-        "Lỗi đăng ký:",
-        error.response ? error.response.data : error.message
-      );
-      alert("Đăng ký thất bại!");
+      setError(error.response?.data?.message || error.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Class cho floating input field
+  // Styles
   const floatingInput =
     "block py-2.5 px-0 w-full text-sm text-white bg-transparent border-0 border-b-2 border-gray-600 appearance-none focus:outline-none focus:ring-0 focus:border-indigo-500 peer";
   const floatingLabel =
@@ -93,144 +100,213 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
-      <div className="bg-gray-800 shadow-2xl rounded-xl p-10 w-full max-w-md">
-        {/* Biểu tượng vua cờ */}
-        <GiChessKing className="mx-auto text-5xl text-gray-300 mb-4" />
-        {isLogin ? (
-          <>
-            <h2 className="text-3xl font-extrabold text-white text-center mb-8 font-serif">
-              Đăng nhập
-            </h2>
-            <form onSubmit={handleLoginSubmit}>
-              {/* Email */}
-              <div className="relative z-0 w-full mb-6 group">
-                <input
-                  type="email"
-                  id="loginEmail"
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                  placeholder=" "
-                  className={floatingInput}
-                  required
-                />
-                <label htmlFor="loginEmail" className={floatingLabel}>
-                  Email
-                </label>
-              </div>
-              {/* Mật khẩu */}
-              <div className="relative z-0 w-full mb-6 group">
-                <input
-                  type="password"
-                  id="loginPassword"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  placeholder=" "
-                  className={floatingInput}
-                  required
-                />
-                <label htmlFor="loginPassword" className={floatingLabel}>
-                  Mật khẩu
-                </label>
-              </div>
-              <button
-                type="submit"
-                className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-md shadow hover:bg-indigo-700 transition duration-150 ease-in-out">
-                Đăng nhập
-              </button>
-            </form>
-            <p className="text-center text-sm text-gray-400 mt-6">
-              Chưa có tài khoản?{" "}
-              <button
-                onClick={() => setIsLogin(false)}
-                className="font-medium text-indigo-400 hover:underline">
-                Đăng ký
-              </button>
-            </p>
-          </>
-        ) : (
-          <>
-            <h2 className="text-3xl font-extrabold text-white text-center mb-8 font-serif">
-              Đăng ký
-            </h2>
-            <form onSubmit={handleRegisterSubmit}>
-              {/* Tên người dùng */}
-              <div className="relative z-0 w-full mb-6 group">
-                <input
-                  type="text"
-                  id="registerUsername"
-                  value={registerUsername}
-                  onChange={(e) => setRegisterUsername(e.target.value)}
-                  placeholder=" "
-                  className={floatingInput}
-                  required
-                />
-                <label htmlFor="registerUsername" className={floatingLabel}>
-                  Tên người dùng
-                </label>
-              </div>
-              {/* Email */}
-              <div className="relative z-0 w-full mb-6 group">
-                <input
-                  type="email"
-                  id="registerEmail"
-                  value={registerEmail}
-                  onChange={(e) => setRegisterEmail(e.target.value)}
-                  placeholder=" "
-                  className={floatingInput}
-                  required
-                />
-                <label htmlFor="registerEmail" className={floatingLabel}>
-                  Email
-                </label>
-              </div>
-              {/* Mật khẩu */}
-              <div className="relative z-0 w-full mb-6 group">
-                <input
-                  type="password"
-                  id="registerPassword"
-                  value={registerPassword}
-                  onChange={(e) => setRegisterPassword(e.target.value)}
-                  placeholder=" "
-                  className={floatingInput}
-                  required
-                />
-                <label htmlFor="registerPassword" className={floatingLabel}>
-                  Mật khẩu
-                </label>
-              </div>
-              {/* Nhập lại mật khẩu */}
-              <div className="relative z-0 w-full mb-6 group">
-                <input
-                  type="password"
-                  id="registerConfirmPassword"
-                  value={registerConfirmPassword}
-                  onChange={(e) => setRegisterConfirmPassword(e.target.value)}
-                  placeholder=" "
-                  className={floatingInput}
-                  required
-                />
-                <label
-                  htmlFor="registerConfirmPassword"
-                  className={floatingLabel}>
-                  Nhập lại mật khẩu
-                </label>
-              </div>
-              <button
-                type="submit"
-                className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-md shadow hover:bg-indigo-700 transition duration-150 ease-in-out">
-                Đăng ký
-              </button>
-            </form>
-            <p className="text-center text-sm text-gray-400 mt-6">
-              Đã có tài khoản?{" "}
-              <button
-                onClick={() => setIsLogin(true)}
-                className="font-medium text-indigo-400 hover:underline">
-                Đăng nhập
-              </button>
-            </p>
-          </>
+      <div className="bg-gray-800 shadow-2xl rounded-xl p-6 md:p-10 w-full max-w-md">
+        {error && (
+          <div className="mb-4 p-3 bg-red-900/50 text-red-300 text-sm rounded-lg">
+            ⚠️ {error}
+          </div>
         )}
+
+        <div
+          className={`transition-all duration-300 ease-out ${
+            isLogin ? "opacity-100 translate-y-0" : "opacity-100 translate-y-4"
+          }`}>
+          <GiChessKing className="mx-auto text-5xl text-gray-300 mb-4" />
+          <SwitchTransition mode="out-in">
+            {isLogin ? (
+              <CSSTransition key="login" timeout={300} classNames="fade">
+                <div>
+                  <h2 className="text-3xl font-extrabold text-white text-center mb-8 font-serif">
+                    Đăng nhập
+                  </h2>
+
+                  <form onSubmit={handleLoginSubmit}>
+                    {/* Email Field */}
+                    <div className="relative z-0 w-full mb-6 group">
+                      <input
+                        type="email"
+                        id="loginEmail"
+                        autoComplete="email"
+                        value={loginEmail}
+                        onChange={(e) => setLoginEmail(e.target.value)}
+                        placeholder=" "
+                        className={floatingInput}
+                        required
+                      />
+                      <label htmlFor="loginEmail" className={floatingLabel}>
+                        Email
+                      </label>
+                    </div>
+
+                    {/* Password Field với toggle */}
+                    <div className="relative z-0 w-full mb-6 group">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        id="loginPassword"
+                        autoComplete="current-password"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        placeholder=" "
+                        className={floatingInput}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-2 top-3 text-gray-400 hover:text-gray-200">
+                        {showPassword ? <FaEye /> : <FaEyeSlash />}
+                      </button>
+                      <label htmlFor="loginPassword" className={floatingLabel}>
+                        Mật khẩu
+                      </label>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-md shadow hover:bg-indigo-700 transition duration-150 ease-in-out">
+                      {isSubmitting ? (
+                        <div className="animate-spin h-5 w-5 border-2 border-white/30 rounded-full border-t-transparent mx-auto" />
+                      ) : (
+                        "Đăng nhập"
+                      )}
+                    </button>
+                  </form>
+
+                  <p className="text-center text-sm text-gray-300 mt-6">
+                    Chưa có tài khoản?{" "}
+                    <button
+                      onClick={() => switchForm(false)}
+                      className="font-medium text-indigo-400 hover:underline transition-colors duration-200 hover:text-indigo-300">
+                      Đăng ký
+                    </button>
+                  </p>
+                </div>
+              </CSSTransition>
+            ) : (
+              <CSSTransition key="register" timeout={300} classNames="fade">
+                <div>
+                  <h2 className="text-3xl font-extrabold text-white text-center mb-8 font-serif">
+                    Đăng ký
+                  </h2>
+
+                  <form onSubmit={handleRegisterSubmit}>
+                    {/* Username Field */}
+                    <div className="relative z-0 w-full mb-6 group">
+                      <input
+                        type="text"
+                        id="registerUsername"
+                        autoComplete="username"
+                        value={registerUsername}
+                        onChange={(e) => setRegisterUsername(e.target.value)}
+                        placeholder=" "
+                        className={floatingInput}
+                        required
+                      />
+                      <label
+                        htmlFor="registerUsername"
+                        className={floatingLabel}>
+                        Tên người dùng
+                      </label>
+                    </div>
+
+                    {/* Email Field */}
+                    <div className="relative z-0 w-full mb-6 group">
+                      <input
+                        type="email"
+                        id="registerEmail"
+                        autoComplete="email"
+                        value={registerEmail}
+                        onChange={(e) => setRegisterEmail(e.target.value)}
+                        placeholder=" "
+                        className={floatingInput}
+                        required
+                      />
+                      <label htmlFor="registerEmail" className={floatingLabel}>
+                        Email
+                      </label>
+                    </div>
+
+                    {/* Password Field với toggle */}
+                    <div className="relative z-0 w-full mb-6 group">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        id="registerPassword"
+                        autoComplete="new-password"
+                        value={registerPassword}
+                        onChange={(e) => setRegisterPassword(e.target.value)}
+                        placeholder=" "
+                        className={floatingInput}
+                        required
+                        minLength={8}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-2 top-3 text-gray-400 hover:text-gray-200">
+                        {showPassword ? <FaEye /> : <FaEyeSlash />}
+                      </button>
+                      <label
+                        htmlFor="registerPassword"
+                        className={floatingLabel}>
+                        Mật khẩu
+                      </label>
+                    </div>
+
+                    {/* Confirm Password Field với toggle */}
+                    <div className="relative z-0 w-full mb-6 group">
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        id="registerConfirmPassword"
+                        autoComplete="new-password"
+                        value={registerConfirmPassword}
+                        onChange={(e) =>
+                          setRegisterConfirmPassword(e.target.value)
+                        }
+                        placeholder=" "
+                        className={floatingInput}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                        className="absolute right-2 top-3 text-gray-400 hover:text-gray-200">
+                        {showConfirmPassword ? <FaEye /> : <FaEyeSlash />}
+                      </button>
+                      <label
+                        htmlFor="registerConfirmPassword"
+                        className={floatingLabel}>
+                        Nhập lại mật khẩu
+                      </label>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-md shadow hover:bg-indigo-700 transition duration-150 ease-in-out">
+                      {isSubmitting ? (
+                        <div className="animate-spin h-5 w-5 border-2 border-white/30 rounded-full border-t-transparent mx-auto" />
+                      ) : (
+                        "Đăng ký"
+                      )}
+                    </button>
+                  </form>
+
+                  <p className="text-center text-sm text-gray-300 mt-6">
+                    Đã có tài khoản?{" "}
+                    <button
+                      onClick={() => switchForm(true)}
+                      className="font-medium text-indigo-400 hover:underline transition-colors duration-200 hover:text-indigo-300">
+                      Đăng nhập
+                    </button>
+                  </p>
+                </div>
+              </CSSTransition>
+            )}
+          </SwitchTransition>
+        </div>
       </div>
     </div>
   );
