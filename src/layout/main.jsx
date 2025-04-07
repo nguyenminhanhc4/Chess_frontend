@@ -6,6 +6,7 @@ import ChessBoard from "../components/chessboard";
 import GameResultPopup from "./GameResultPopup";
 import { UserAuthContext } from "../context/UserAuthContext";
 import axios from "axios";
+const baseURL = import.meta.env.VITE_API_URL;
 
 const cloneGame = (gameInstance) => {
   return Object.assign(
@@ -31,7 +32,7 @@ const MainLayout = () => {
   const updatePositionOnServer = async (moves) => {
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/engine/position",
+        `${baseURL}/api/engine/position`,
         moves,
         {
           headers: {
@@ -49,7 +50,7 @@ const MainLayout = () => {
   const getEngineMoveFromServer = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/engine/go?difficulty=${difficulty}`
+        `${baseURL}/api/engine/go?difficulty=${difficulty}`
       );
       console.log("Engine move response:", response.data);
 
@@ -152,10 +153,7 @@ const MainLayout = () => {
     };
 
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/game/save",
-        gameData
-      );
+      const response = await axios.post(`${baseURL}/api/game/save`, gameData);
       console.log("Ván đấu đã được lưu:", response.data);
     } catch (error) {
       console.error("Lỗi khi lưu ván đấu:", error);

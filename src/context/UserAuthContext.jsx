@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import { getSessionId } from "../utils/session";
+const baseURL = import.meta.env.VITE_API_URL;
 
 export const UserAuthContext = createContext();
 
@@ -20,9 +21,7 @@ export const UserAuthProvider = ({ children }) => {
         const decoded = jwtDecode(token);
         console.log("Payload sau khi decode:", decoded);
         const userId = decoded.sub;
-        const response = await axios.get(
-          `http://localhost:8080/api/users/${userId}`
-        );
+        const response = await axios.get(`${baseURL}/api/users/${userId}`);
         console.log("Thông tin user từ API:", response.data);
         setUser(response.data);
       } catch (error) {

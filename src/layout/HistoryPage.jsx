@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { HiUser, HiChip } from "react-icons/hi";
 import { FiX } from "react-icons/fi";
 import { toast } from "react-toastify";
+const baseURL = import.meta.env.VITE_API_URL;
 
 const HistoryPage = () => {
   const { user } = useContext(UserAuthContext);
@@ -39,7 +40,7 @@ const HistoryPage = () => {
     if (user) {
       setIsLoading(true);
       axios
-        .get(`http://localhost:8080/api/game/history/${user.username}`)
+        .get(`${baseURL}/api/game/history/${user.username}`)
         .then((response) => {
           setGames(response.data);
           setFilteredGames(response.data);

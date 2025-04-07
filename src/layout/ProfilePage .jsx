@@ -16,6 +16,7 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
+const baseURL = import.meta.env.VITE_API_URL;
 
 const COLORS = ["#0088FE", "#FF8042", "#00C49F"];
 
@@ -46,7 +47,7 @@ const ProfilePage = () => {
   const fetchGameStats = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/game/stats/user/${user.id}`
+        `${baseURL}/api/game/stats/user/${user.id}`
       );
       setGameStats(response.data);
     } catch (error) {
@@ -125,7 +126,7 @@ const ProfilePage = () => {
       formData.append("file", file);
       try {
         const response = await axios.put(
-          `http://localhost:8080/api/users/${user.id}/profile-picture`,
+          `${baseURL}/api/users/${user.id}/profile-picture`,
           formData,
           { headers: { "Content-Type": "multipart/form-data" } }
         );
@@ -143,10 +144,10 @@ const ProfilePage = () => {
     setLoading(true);
     setMessage("");
     try {
-      const response = await axios.put(
-        `http://localhost:8080/api/users/${user.id}`,
-        { username, email }
-      );
+      const response = await axios.put(`${baseURL}/api/users/${user.id}`, {
+        username,
+        email,
+      });
       setUser(response.data);
       setMessage("Cập nhật hồ sơ thành công!");
     } catch (error) {

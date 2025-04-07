@@ -17,6 +17,7 @@ import axios from "axios";
 import { useContext, useRef, useEffect } from "react";
 import { UserAuthContext } from "../context/UserAuthContext";
 import { toast } from "react-toastify";
+const baseURL = import.meta.env.VITE_API_URL;
 
 const PvpSidebar = ({
   moveHistory,
@@ -109,7 +110,7 @@ const PvpSidebar = ({
     if (loadingMatch) {
       try {
         await axios.post(
-          "http://localhost:8080/api/matchmaking/cancel",
+          `${baseURL}/api/matchmaking/cancel`,
           { ...user, gameMode: selectedTimeValue },
           { headers: { "Content-Type": "application/json" } }
         );
@@ -122,7 +123,7 @@ const PvpSidebar = ({
       setLoadingMatch(true);
       try {
         const response = await axios.post(
-          "http://localhost:8080/api/matchmaking/join",
+          `${baseURL}/api/matchmaking/join`,
           { ...user, gameMode: selectedTimeValue },
           { headers: { "Content-Type": "application/json" } }
         );

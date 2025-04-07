@@ -11,6 +11,7 @@ import { Client } from "@stomp/stompjs";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ChessClock from "../components/ChessClock";
+const baseURL = import.meta.env.VITE_API_URL;
 
 // Helper function để clone đối tượng Chess (để trigger re-render)
 const cloneGame = (gameInstance) => {
@@ -152,7 +153,7 @@ const PvpPage = () => {
       const opponentUsername =
         user.username === matchInfo.white ? matchInfo.black : matchInfo.white;
       axios
-        .get(`http://localhost:8080/api/users/username/${opponentUsername}`)
+        .get(`${baseURL}/api/users/username/${opponentUsername}`)
         .then((response) => {
           setOpponentData(response.data);
         })
@@ -196,7 +197,7 @@ const PvpPage = () => {
   const updatePositionOnServer = async (moves) => {
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/engine/position",
+        `${baseURL}/api/engine/position`,
         moves,
         { headers: { "Content-Type": "text/plain" } }
       );
@@ -232,10 +233,7 @@ const PvpPage = () => {
     console.log("Game data before saving:", gameData);
 
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/game/save",
-        gameData
-      );
+      const response = await axios.post(`${baseURL}/api/game/save`, gameData);
       console.log("Game saved:", response.data);
     } catch (error) {
       console.error("Error saving game:", error);
@@ -463,8 +461,7 @@ const PvpPage = () => {
     const client = new Client({
       webSocketFactory: () =>
         new SockJS(
-          "http://localhost:8080/ws?username=" +
-            encodeURIComponent(user.username)
+          `${baseURL}/ws?username=` + encodeURIComponent(user.username)
         ),
       reconnectDelay: 5000,
       debug: (str) => console.log(str),

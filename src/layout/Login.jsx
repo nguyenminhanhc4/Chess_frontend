@@ -29,6 +29,7 @@ const Login = () => {
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState("");
+  const baseURL = import.meta.env.VITE_API_URL;
 
   // Reset form khi chuyển đổi
   const switchForm = (isLoginForm) => {
@@ -47,13 +48,10 @@ const Login = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/auth/login",
-        {
-          email: loginEmail,
-          password: loginPassword,
-        }
-      );
+      const response = await axios.post(`${baseURL}/api/auth/login`, {
+        email: loginEmail,
+        password: loginPassword,
+      });
 
       const sessionId = getSessionId();
       localStorage.setItem(`authToken_${sessionId}`, response.data.token);
@@ -75,7 +73,7 @@ const Login = () => {
         throw new Error("Mật khẩu nhập lại không khớp!");
       }
 
-      await axios.post("http://localhost:8080/api/auth/register", {
+      await axios.post(`${baseURL}/api/auth/register`, {
         username: registerUsername,
         email: registerEmail,
         password: registerPassword,

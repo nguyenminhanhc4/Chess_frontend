@@ -6,6 +6,7 @@ import Nav from "./nav";
 import AnalysisSidebar from "./AnalysisSidebar";
 import ChessBoard from "../components/chessboard";
 import EvalBar from "../components/EvalBar";
+const baseURL = import.meta.env.VITE_API_URL;
 
 const AnalysisPage = () => {
   const { gameId } = useParams();
@@ -19,9 +20,7 @@ const AnalysisPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const resGame = await axios.get(
-          `http://localhost:8080/api/game/${gameId}`
-        );
+        const resGame = await axios.get(`${baseURL}/api/game/${gameId}`);
         const gameData = resGame.data;
         setGameDetails(gameData);
 
@@ -44,13 +43,13 @@ const AnalysisPage = () => {
         }
 
         const resPlayer = await axios.get(
-          `http://localhost:8080/api/users/username/${gameData.playerUsername}`
+          `${baseURL}/api/users/username/${gameData.playerUsername}`
         );
         setPlayerInfo(resPlayer.data);
 
         if (gameData.opponentType !== "BOT") {
           const resOpponent = await axios.get(
-            `http://localhost:8080/api/users/username/${gameData.opponent}`
+            `${baseURL}/api/users/username/${gameData.opponent}`
           );
           setOpponentInfo(resOpponent.data);
         }
@@ -88,7 +87,7 @@ const AnalysisPage = () => {
         depth: 15,
       };
       axios
-        .post("http://localhost:8080/api/engine/analyzeDetailed", payload)
+        .post(`${baseURL}/api/engine/analyzeDetailed`, payload)
         .then((res) => {
           setAnalysisResult(res.data);
           console.log("Phân tích chi tiết:", res.data);
