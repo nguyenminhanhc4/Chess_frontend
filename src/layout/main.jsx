@@ -256,7 +256,7 @@ const MainLayout = () => {
   const opponentInfo = (
     <div className="flex items-center justify-center space-x-2 mb-2">
       <img
-        src="../../public/robo_icon.jpg"
+        src="/robo_icon.jpg"
         alt="Opponent"
         className="w-6 h-6 md:w-8 md:h-8 rounded-full"
       />
@@ -275,7 +275,7 @@ const MainLayout = () => {
         src={
           user && user.profilePicture
             ? user.profilePicture
-            : "../../public/user_default.jpg"
+            : "/user_default.jpg"
         }
         alt="You"
         className="w-6 h-6 md:w-8 md:h-8 rounded-full"
