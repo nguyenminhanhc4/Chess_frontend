@@ -547,7 +547,7 @@ const PvpPage = () => {
     <div
       className={`flex items-center justify-between w-full px-4 py-2 mb-2 bg-gray-800 rounded-md shadow-sm ${
         activeColor !== playerColor
-          ? "border-cyan-400 bg-cyan-500/20 shadow-[0_0_15px_#8b5cf6]"
+          ? "border-green-400 bg-green-500/20 shadow-[0_0_15px_#8b5cf6]"
           : "border-transparent"
       }`}>
       <div className="flex items-center space-x-2">
@@ -621,7 +621,7 @@ const PvpPage = () => {
     <div
       className={`flex items-center justify-between w-full px-4 py-2 mt-2 bg-gray-800 rounded-md shadow-sm ${
         activeColor === playerColor
-          ? "border-cyan-400 bg-cyan-500/20 shadow-[0_0_15px_#8b5cf6]"
+          ? "border-green-400 bg-green-500/20 shadow-[0_0_15px_#8b5cf6]"
           : "border-transparent"
       }`}>
       <div className="flex items-center space-x-2">
