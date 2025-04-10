@@ -143,3 +143,21 @@ body {
   opacity: 0;
   transition: opacity 300ms ease-out;
 }
+
+/* Trong file CSS global */
+@keyframes turn-glow {
+  0% {
+    box-shadow: 0 0 10px #8b5cf655;
+  }
+  50% {
+    box-shadow: 0 0 20px #8b5cf6aa;
+  }
+  100% {
+    box-shadow: 0 0 10px #8b5cf655;
+  }
+}
+
+.active-turn {
+  animation: turn-glow 1.5s ease-in-out infinite;
+  border-color: #00f3ff !important;
+}

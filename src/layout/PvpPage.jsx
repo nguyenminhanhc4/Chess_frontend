@@ -227,6 +227,7 @@ const PvpPage = () => {
       moves: movesHistory.length > 0 ? movesHistory.join(" ") : "No moves",
       finalFen: game.fen(),
       result: result.toUpperCase(),
+      userId: user.id,
     };
 
     console.log("Current matchInfo (from ref):", currentMatchInfo);
@@ -293,7 +294,7 @@ const PvpPage = () => {
 
   const handleMove = async (from, to, promotion = null) => {
     if (!matchInfo) {
-      toast.info(
+      toast.error(
         "Bạn chưa tìm được trận. Vui lòng tìm trận để di chuyển quân cờ."
       );
       return false;
@@ -397,6 +398,7 @@ const PvpPage = () => {
       const payload = {
         sender: user.username,
         matchId: matchInfo ? matchInfo.matchId : null,
+        result: "LOSE",
       };
       stompClient.publish({
         destination: "/app/surrender",
@@ -414,7 +416,7 @@ const PvpPage = () => {
       });
       console.log("Game over broadcast sent (surrender):", gameOverPayload);
     }
-    setGameResult("Bạn thua (đầu hàng)!");
+    setGameResult("LOSE");
     if (!gameSavedRef.current) {
       saveGameToServer("LOSE");
       setGameSaved(true);
@@ -542,7 +544,12 @@ const PvpPage = () => {
 
   // Thông tin hiển thị của đối thủ sử dụng opponentData
   const opponentInfo = matchInfo ? (
-    <div className="flex items-center justify-between w-full px-4 py-2 mb-2 bg-gray-800 rounded-md shadow-sm">
+    <div
+      className={`flex items-center justify-between w-full px-4 py-2 mb-2 bg-gray-800 rounded-md shadow-sm ${
+        activeColor !== playerColor
+          ? "border-cyan-400 bg-cyan-500/20 shadow-[0_0_15px_#8b5cf6]"
+          : "border-transparent"
+      }`}>
       <div className="flex items-center space-x-2">
         <img
           src={
@@ -611,7 +618,12 @@ const PvpPage = () => {
 
   // Thông tin hiển thị của người chơi
   const youInfo = (
-    <div className="flex items-center justify-between w-full px-4 py-2 mt-2 bg-gray-800 rounded-md shadow-sm">
+    <div
+      className={`flex items-center justify-between w-full px-4 py-2 mt-2 bg-gray-800 rounded-md shadow-sm ${
+        activeColor === playerColor
+          ? "border-cyan-400 bg-cyan-500/20 shadow-[0_0_15px_#8b5cf6]"
+          : "border-transparent"
+      }`}>
       <div className="flex items-center space-x-2">
         <img
           src={

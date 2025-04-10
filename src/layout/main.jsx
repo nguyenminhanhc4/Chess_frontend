@@ -6,6 +6,8 @@ import ChessBoard from "../components/chessboard";
 import GameResultPopup from "./GameResultPopup";
 import { UserAuthContext } from "../context/UserAuthContext";
 import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 const baseURL = import.meta.env.VITE_API_URL;
 
 const cloneGame = (gameInstance) => {
@@ -22,6 +24,11 @@ const MainLayout = () => {
   const [gameResult, setGameResult] = useState(null);
   // State cho độ khó của AI, mặc định "medium"
   const [difficulty, setDifficulty] = useState("medium");
+  const difficultyRatings = {
+    easy: "Dễ",
+    medium: "Trung bình",
+    hard: "Khó",
+  };
   const { user } = useContext(UserAuthContext);
   const playerColor = orientation === "white" ? "w" : "b";
 
@@ -89,6 +96,10 @@ const MainLayout = () => {
 
   // Xử lý nước đi mới, tích hợp gọi API backend
   const handleMove = async (from, to, promotion = null) => {
+    if (!gameStarted) {
+      toast.error("Vui lòng bấm Chơi để bắt đầu ván cờ!");
+      return false;
+    }
     const move = game.move({ from, to, promotion });
     if (move) {
       setGame(cloneGame(game));
@@ -150,6 +161,7 @@ const MainLayout = () => {
       moves: game.history({ verbose: false }).join(" "),
       finalFen: game.fen(),
       result: result.toUpperCase(),
+      userId: user.id,
     };
 
     try {
@@ -180,7 +192,7 @@ const MainLayout = () => {
   };
 
   const handleSurrender = () => {
-    setGameResult("Bạn thua (đầu hàng)!");
+    setGameResult("LOSE");
     saveGameToServer("LOSE");
   };
 
@@ -264,7 +276,7 @@ const MainLayout = () => {
         className={`text-white px-2 py-1 rounded ${
           game.turn() !== playerColor ? "bg-green-600" : "bg-gray-700"
         }`}>
-        Bot (600)
+        Bot ({difficultyRatings[difficulty]})
       </div>
     </div>
   );
