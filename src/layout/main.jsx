@@ -351,6 +351,7 @@ const MainLayout = () => {
           />
         </div>
       </div>
+      <ToastContainer />
       {gameResult && (
         <GameResultPopup
           result={gameResult}

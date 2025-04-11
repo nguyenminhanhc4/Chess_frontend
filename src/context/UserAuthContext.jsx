@@ -9,6 +9,7 @@ export const UserAuthContext = createContext();
 
 export const UserAuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [userStatus, setUserStatus] = useState("offline");
 
   const updateUserFromToken = async () => {
     const sessionId = getSessionId();
@@ -24,13 +25,25 @@ export const UserAuthProvider = ({ children }) => {
         const response = await axios.get(`${baseURL}/api/users/${userId}`);
         console.log("Thông tin user từ API:", response.data);
         setUser(response.data);
+        setUserStatus("online");
       } catch (error) {
         console.error("Lỗi khi lấy thông tin user từ API:", error);
         setUser(null);
+        setUserStatus("offline");
       }
     } else {
       setUser(null);
+      setUserStatus("offline");
     }
+  };
+
+  const logout = () => {
+    const sessionId = getSessionId();
+    const tokenKey = "authToken_" + sessionId;
+    localStorage.removeItem(tokenKey);
+    setUser(null);
+    setUserStatus("offline");
+    window.location.href = "/";
   };
 
   useEffect(() => {
@@ -42,7 +55,15 @@ export const UserAuthProvider = ({ children }) => {
   };
 
   return (
-    <UserAuthContext.Provider value={{ user, setUser, updateUserFromToken }}>
+    <UserAuthContext.Provider
+      value={{
+        user,
+        setUser,
+        userStatus,
+        setUserStatus,
+        updateUserFromToken,
+        logout,
+      }}>
       {children}
     </UserAuthContext.Provider>
   );

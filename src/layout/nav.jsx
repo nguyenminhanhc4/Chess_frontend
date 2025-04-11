@@ -13,13 +13,11 @@ import { UserAuthContext } from "../context/UserAuthContext";
 import ProtectedLink from "./ProtectedLink"; // Đảm bảo đường dẫn chính xác
 import { getSessionId } from "../utils/session";
 const Nav = () => {
-  const { user, updateUserFromToken } = useContext(UserAuthContext);
+  const { user } = useContext(UserAuthContext);
+  const { logout } = useContext(UserAuthContext);
 
   const handleLogout = () => {
-    const sessionId = getSessionId();
-    const tokenKey = "authToken_" + sessionId;
-    localStorage.removeItem(tokenKey);
-    updateUserFromToken();
+    logout();
     toast.success("Đã đăng xuất thành công");
   };
 
